@@ -1,0 +1,50 @@
+services:
+  db:
+    image: mysql:8.0.36
+    container_name: codeable_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: codeable
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: codeable_backend
+    restart: unless-stopped
+    environment:
+      PORT: "4000"
+      DATABASE_URL: "mysql://root:rootpass@db:3306/codeable"
+      SEED_ON_START: "0"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    command: sh -lc "until mysqladmin ping -h db -uroot -prootpass --silent; do sleep 1; done; npx prisma generate && npx prisma migrate deploy && if [ \"${SEED_ON_START}\" = \"1\" ]; then npm run prisma:seed; fi; node dist/index.js"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_GRAPHQL_URL: "http://localhost:4000/graphql"
+    container_name: codeable_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  db_data:

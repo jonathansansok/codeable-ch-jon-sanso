@@ -1,5 +1,5 @@
 //backend\src\resolvers.ts
-import { prisma } from "./prisma";
+import { prisma } from "./prisma.js";
 import { Prisma, VolumeTier } from "@prisma/client";
 
 function toFloat(v: any) {

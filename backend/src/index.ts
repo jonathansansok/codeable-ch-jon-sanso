@@ -2,8 +2,8 @@ import express from "express";
 import cors from "cors";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express4";
-import { typeDefs } from "./schema";
-import { resolvers } from "./resolvers";
+import { typeDefs } from "./schema.js";
+import { resolvers } from "./resolvers.js";
 
 async function main() {
   const app = express();
