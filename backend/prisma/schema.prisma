@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum VolumeTier {
+  KG_300
+  KG_500
+  T_1
+  T_3
+  T_5
+  T_10
+  T_20
+  T_30
+}
+
+enum LinkMode {
+  NONE
+  BY_STRUCTURE
+}
+
+model Plant {
+  id        String          @id @default(uuid())
+  name      String
+  code      String?         @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  operations PlantOperation[]
+}
+
+model Operation {
+  id           String          @id @default(uuid())
+  name         String
+  basePriceUsd Decimal         @db.Decimal(12, 2)
+  linkMode     LinkMode        @default(NONE)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  plants       PlantOperation[]
+}
+
+model PlantOperation {
+  id          String         @id @default(uuid())
+  plantId     String
+  operationId String
+  plant       Plant          @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  operation   Operation      @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  margins     VolumeMargin[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([plantId, operationId])
+  @@index([plantId])
+  @@index([operationId])
+}
+
+model VolumeMargin {
+  id              String        @id @default(uuid())
+  plantOperationId String
+  tier            VolumeTier
+  marginPercent   Decimal       @db.Decimal(5, 2)
+  plantOperation  PlantOperation @relation(fields: [plantOperationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([plantOperationId, tier])
+  @@index([plantOperationId])
+}
