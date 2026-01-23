@@ -27,7 +27,6 @@ function isOverwrittenRow(r: PlantOpRow) {
   }
   return vals.some((v) => v !== mode);
 }
-
 export function PlantOperationsPage() {
   const plantsQ = usePlants();
   const plants = useMemo(() => plantsQ.data?.plants ?? [], [plantsQ.data]);

@@ -553,7 +553,7 @@ export function PlantOperationsTable(p: {
                   })}
                 </TableRow>
               );
-            })}
+            })}  
           </TableBody>
         </Table>
       </TableContainer>
