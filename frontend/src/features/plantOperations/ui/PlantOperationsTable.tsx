@@ -271,45 +271,44 @@ export function PlantOperationsTable(p: {
                         >
                           <Box>
                             <TextField
-                              value={value}
-                              size="small"
-                              inputMode="decimal"
-                              type="number"
-                              onChange={(e) => setDraft((prev) => ({ ...prev, [key]: e.target.value }))}
-                              onBlur={async () => {
-                                const raw = draft[key];
-                                if (raw == null) return;
+  value={value}
+  size="small"
+  type="text"
+  inputMode="decimal"
+  onChange={(e) => setDraft((prev) => ({ ...prev, [key]: e.target.value }))}
+  onBlur={async () => {
+    const raw = draft[key];
+    if (raw == null) return;
 
-                                const parsed2 = parseMargin(raw);
-                                if (!parsed2.ok) return;
+    const parsed2 = parseMargin(raw);
+    if (!parsed2.ok) return;
 
-                                if (parsed2.value === current) {
-                                  setDraft((prev) => {
-                                    const c = { ...prev };
-                                    delete c[key];
-                                    return c;
-                                  });
-                                  return;
-                                }
+    if (parsed2.value === current) {
+      setDraft((prev) => {
+        const c = { ...prev };
+        delete c[key];
+        return c;
+      });
+      return;
+    }
 
-                                await p.onCommit(r.operation.id, t, parsed2.value, current);
+    await p.onCommit(r.operation.id, t, parsed2.value, current);
 
-                                setDraft((prev) => {
-                                  const c = { ...prev };
-                                  delete c[key];
-                                  return c;
-                                });
-                              }}
-                              error={!isValid}
-                              helperText={!isValid ? parsed.message : " "}
-                              sx={{
-                                width: 92,
-                                "& .MuiInputBase-input": { textAlign: "center" },
-                                ...(isLow
-                                  ? { "& .MuiOutlinedInput-root": { backgroundColor: "rgba(244, 67, 54, 0.10)" } }
-                                  : {})
-                              }}
-                            />
+    setDraft((prev) => {
+      const c = { ...prev };
+      delete c[key];
+      return c;
+    });
+  }}
+  error={!isValid}
+  helperText={!isValid ? parsed.message : " "}
+  sx={{
+    width: 92,
+    "& .MuiInputBase-input": { textAlign: "center" },
+    ...(isLow ? { "& .MuiOutlinedInput-root": { backgroundColor: "rgba(244, 67, 54, 0.10)" } } : {})
+  }}
+/>
+
                           </Box>
                         </Tooltip>
                       </TableCell>
