@@ -1,4 +1,3 @@
-//frontend\src\features\plantOperations\ui\PlantOperationsTable.tsx
 import {
   Box,
   IconButton,
@@ -264,14 +263,8 @@ export function PlantOperationsTable(p: {
   );
 
   return (
-    <Paper elevation={0} variant="outlined">
-      <TableContainer
-        className="w-full"
-        sx={{
-          overflowX: "auto",
-          maxHeight: "none"
-        }}
-      >
+    <Paper elevation={0} variant="outlined" sx={{ borderRadius: 3 }}>
+      <TableContainer className="w-full" sx={{ overflowX: "auto", maxHeight: "none" }}>
         <Table stickyHeader size="small" sx={{ minWidth: 1180 }}>
           <TableHead>
             <TableRow>
@@ -281,9 +274,11 @@ export function PlantOperationsTable(p: {
                   left: 0,
                   zIndex: 4,
                   minWidth: col1,
-                  backgroundColor: "grey.900",
+                  backgroundColor: (t) => (t.palette.mode === "dark" ? "primary.dark" : "primary.main"),
                   color: "common.white",
-                  fontWeight: 800
+                  fontWeight: 900,
+                  borderBottom: "1px solid",
+                  borderBottomColor: "divider"
                 }}
               >
                 Tipo de cliente
@@ -295,9 +290,11 @@ export function PlantOperationsTable(p: {
                   left: col1,
                   zIndex: 4,
                   minWidth: col2,
-                  backgroundColor: "grey.900",
+                  backgroundColor: (t) => (t.palette.mode === "dark" ? "primary.dark" : "primary.main"),
                   color: "common.white",
-                  fontWeight: 800
+                  fontWeight: 900,
+                  borderBottom: "1px solid",
+                  borderBottomColor: "divider"
                 }}
               >
                 Classe x color
@@ -309,9 +306,11 @@ export function PlantOperationsTable(p: {
                   left: col1 + col2,
                   zIndex: 4,
                   minWidth: col3,
-                  backgroundColor: "grey.900",
+                  backgroundColor: (t) => (t.palette.mode === "dark" ? "primary.dark" : "primary.main"),
                   color: "common.white",
-                  fontWeight: 800
+                  fontWeight: 900,
+                  borderBottom: "1px solid",
+                  borderBottomColor: "divider"
                 }}
               >
                 Vincular precio
@@ -323,9 +322,11 @@ export function PlantOperationsTable(p: {
                   align="center"
                   sx={{
                     minWidth: 96,
-                    backgroundColor: "grey.900",
+                    backgroundColor: (x) => (x.palette.mode === "dark" ? "primary.dark" : "primary.main"),
                     color: "common.white",
-                    fontWeight: 800
+                    fontWeight: 900,
+                    borderBottom: "1px solid",
+                    borderBottomColor: "divider"
                   }}
                 >
                   {tierLabel(t)}
@@ -357,6 +358,11 @@ export function PlantOperationsTable(p: {
                             size="small"
                             aria-label="toggle"
                             onClick={() => setCollapsed((prev) => ({ ...prev, [gid]: !isCollapsed }))}
+                            sx={{
+                              border: "1px solid",
+                              borderColor: "divider",
+                              borderRadius: 2
+                            }}
                           >
                             <ChevronIcon collapsed={isCollapsed} />
                           </IconButton>
@@ -374,6 +380,11 @@ export function PlantOperationsTable(p: {
                           aria-label="add"
                           onClick={openCreate}
                           disabled={savingStructure}
+                          sx={{
+                            border: "1px solid",
+                            borderColor: "divider",
+                            borderRadius: 2
+                          }}
                         >
                           <AddIcon />
                         </IconButton>
@@ -399,7 +410,7 @@ export function PlantOperationsTable(p: {
                   key={r.id}
                   hover
                   sx={{
-                    backgroundColor: zebra ? "background.default" : "action.hover"
+                    backgroundColor: zebra ? "background.paper" : "background.default"
                   }}
                 >
                   <TableCell
@@ -408,7 +419,7 @@ export function PlantOperationsTable(p: {
                       left: 0,
                       zIndex: 3,
                       minWidth: col1,
-                      backgroundColor: zebra ? "background.default" : "action.hover",
+                      backgroundColor: zebra ? "background.paper" : "background.default",
                       borderRight: "1px solid",
                       borderRightColor: "divider"
                     }}
@@ -428,9 +439,10 @@ export function PlantOperationsTable(p: {
                       left: col1,
                       zIndex: 2,
                       minWidth: col2,
-                      backgroundColor: zebra ? "background.default" : "action.hover",
+                      backgroundColor: zebra ? "background.paper" : "background.default",
                       borderRight: "1px solid",
-                      borderRightColor: "divider"
+                      borderRightColor: "divider",
+                      fontWeight: 800
                     }}
                   >
                     {num(r.operation.basePriceUsd).toFixed(2)} USD
@@ -442,9 +454,10 @@ export function PlantOperationsTable(p: {
                       left: col1 + col2,
                       zIndex: 2,
                       minWidth: col3,
-                      backgroundColor: zebra ? "background.default" : "action.hover",
+                      backgroundColor: zebra ? "background.paper" : "background.default",
                       borderRight: "1px solid",
-                      borderRightColor: "divider"
+                      borderRightColor: "divider",
+                      fontWeight: 800
                     }}
                   >
                     {r.operation.linkMode === "BY_STRUCTURE" ? "Por estructura" : "No vincular"}
@@ -531,18 +544,23 @@ export function PlantOperationsTable(p: {
                                   textAlign: "center",
                                   lineHeight: 1.1,
                                   mt: 0.5,
-                                  mx: 0
+                                  mx: 0,
+                                  fontWeight: 700
                                 }
                               }}
                               sx={{
                                 width: 92,
-                                "& .MuiInputBase-input": { textAlign: "center" },
+                                "& .MuiInputBase-input": { textAlign: "center", fontWeight: 800 },
                                 "& .MuiFormHelperText-root": { minHeight: 28 },
                                 ...(isLow
                                   ? {
-                                      "& .MuiOutlinedInput-root": {
-                                        backgroundColor: "rgba(244, 67, 54, 0.10)"
-                                      }
+                                      "& .MuiOutlinedInput-root": (x) => ({
+                                        backgroundColor:
+                                          x.palette.mode === "dark"
+                                            ? "rgba(248, 81, 73, 0.14)"
+                                            : "rgba(209, 36, 47, 0.10)",
+                                        borderRadius: 12
+                                      })
                                     }
                                   : {})
                               }}
@@ -554,7 +572,7 @@ export function PlantOperationsTable(p: {
                   })}
                 </TableRow>
               );
-            })}  
+            })}
           </TableBody>
         </Table>
       </TableContainer>

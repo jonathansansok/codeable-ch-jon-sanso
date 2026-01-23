@@ -26,8 +26,20 @@ export function OperationFormDialog(p: {
   const s = p.state;
 
   return (
-    <Dialog open={s.open} onClose={p.onClose} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ fontWeight: 900 }}>
+    <Dialog
+      open={s.open}
+      onClose={p.onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider"
+        }
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: 950 }}>
         {s.mode === "create" ? "Nueva operación" : "Editar operación"}
       </DialogTitle>
 
@@ -65,7 +77,7 @@ export function OperationFormDialog(p: {
           </Box>
 
           {s.error && (
-            <Typography color="error" variant="body2" sx={{ fontWeight: 700 }}>
+            <Typography color="error" variant="body2" sx={{ fontWeight: 800 }}>
               {s.error}
             </Typography>
           )}
@@ -73,10 +85,21 @@ export function OperationFormDialog(p: {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={p.onClose} disabled={p.saving}>
+        <Button
+          onClick={p.onClose}
+          disabled={p.saving}
+          variant="outlined"
+          color="inherit"
+          sx={{ fontWeight: 900, borderRadius: 2 }}
+        >
           Cancelar
         </Button>
-        <Button variant="contained" onClick={p.onSubmit} disabled={p.saving} sx={{ fontWeight: 900 }}>
+        <Button
+          variant="contained"
+          onClick={p.onSubmit}
+          disabled={p.saving}
+          sx={{ fontWeight: 950, borderRadius: 2 }}
+        >
           {p.saving ? "Guardando..." : "Guardar"}
         </Button>
       </DialogActions>

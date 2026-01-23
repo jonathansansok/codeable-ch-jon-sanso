@@ -9,7 +9,7 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  useMediaQuery,
+  useMediaQuery
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useMemo, useState } from "react";
@@ -22,11 +22,7 @@ type NavItem = {
 };
 
 function ThemeIcon(p: { mode: "light" | "dark" }) {
-  return (
-    <span style={{ fontSize: 18, lineHeight: 1 }}>
-      {p.mode === "dark" ? "☾" : "☼"}
-    </span>
-  );
+  return <span style={{ fontSize: 18, lineHeight: 1 }}>{p.mode === "dark" ? "☾" : "☼"}</span>;
 }
 
 export function PageShell(p: {
@@ -40,7 +36,7 @@ export function PageShell(p: {
   const theme = useTheme();
   const mdUp = useMediaQuery(theme.breakpoints.up("md"));
 
-  const drawerWidth = 280;
+  const drawerWidth = 288;
   const railWidth = 16;
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -87,18 +83,20 @@ export function PageShell(p: {
               }}
               sx={{
                 mx: 1,
-                mb: 0.5,
+                mb: 0.75,
                 borderRadius: 2,
                 px: 2,
-                borderLeft: selected ? "3px solid" : "3px solid transparent",
-                borderLeftColor: selected ? "primary.main" : "transparent",
+                border: "1px solid",
+                borderColor: selected ? "primary.main" : "divider",
+                backgroundColor: selected ? "action.selected" : "transparent",
+                "&:hover": { backgroundColor: "action.hover" }
               }}
             >
               <ListItemText
                 primary={x.label}
                 primaryTypographyProps={{
-                  fontWeight: selected ? 800 : 600,
-                  noWrap: true,
+                  fontWeight: selected ? 900 : 700,
+                  noWrap: true
                 }}
               />
             </ListItemButton>
@@ -116,7 +114,7 @@ export function PageShell(p: {
           pb: 1,
           display: "flex",
           justifyContent: "flex-end",
-          pointerEvents: "none",
+          pointerEvents: "none"
         }}
       >
         <IconButton
@@ -130,8 +128,8 @@ export function PageShell(p: {
             border: "1px solid",
             borderColor: "divider",
             backgroundColor: "background.paper",
-            boxShadow: "0 10px 30px rgba(0,0,0,.25)",
-            "&:hover": { backgroundColor: "action.hover" },
+            boxShadow: "0 12px 32px rgba(0,0,0,.18)",
+            "&:hover": { backgroundColor: "action.hover" }
           }}
         >
           <FiChevronLeft size={20} />
@@ -142,14 +140,31 @@ export function PageShell(p: {
 
   return (
     <Box className="min-h-screen">
-      <AppBar position="sticky" elevation={0} color="transparent">
+      <AppBar
+        position="sticky"
+        elevation={0}
+        color="transparent"
+        sx={{
+          borderBottom: "1px solid",
+          borderBottomColor: "divider",
+          backdropFilter: "blur(10px)",
+          backgroundColor:
+            theme.palette.mode === "dark" ? "rgba(13,17,23,0.72)" : "rgba(246,248,250,0.72)"
+        }}
+      >
         <Toolbar className="flex items-center justify-between">
           <Box className="flex items-center gap-2 min-w-0">
             {!isDesktop && (
               <IconButton
                 aria-label="Abrir menú"
                 onClick={() => setMobileOpen(true)}
-                sx={{ width: 40, height: 40 }}
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "divider"
+                }}
               >
                 <FiMenu size={20} />
               </IconButton>
@@ -165,7 +180,19 @@ export function PageShell(p: {
             </Box>
           </Box>
 
-          <IconButton onClick={cm.toggle} aria-label="toggle theme">
+          <IconButton
+            onClick={cm.toggle}
+            aria-label="toggle theme"
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              backgroundColor: "background.paper",
+              "&:hover": { backgroundColor: "action.hover" }
+            }}
+          >
             <ThemeIcon mode={cm.mode} />
           </IconButton>
         </Toolbar>
@@ -187,7 +214,8 @@ export function PageShell(p: {
                   borderRight: "1px solid",
                   borderRightColor: "divider",
                   overflowX: "hidden",
-                },
+                  backgroundColor: "background.paper"
+                }
               }}
             >
               {drawerContent}
@@ -201,7 +229,7 @@ export function PageShell(p: {
                   position: "relative",
                   borderRight: "1px solid",
                   borderRightColor: "divider",
-                  backgroundColor: "transparent",
+                  backgroundColor: "transparent"
                 }}
               >
                 <Box
@@ -211,7 +239,7 @@ export function PageShell(p: {
                     zIndex: 2,
                     display: "flex",
                     justifyContent: "center",
-                    pt: 1,
+                    pt: 1
                   }}
                 >
                   <IconButton
@@ -224,8 +252,8 @@ export function PageShell(p: {
                       border: "1px solid",
                       borderColor: "divider",
                       backgroundColor: "background.paper",
-                      boxShadow: "0 10px 30px rgba(0,0,0,.25)",
-                      "&:hover": { backgroundColor: "action.hover" },
+                      boxShadow: "0 12px 32px rgba(0,0,0,.18)",
+                      "&:hover": { backgroundColor: "action.hover" }
                     }}
                   >
                     <FiChevronRight size={20} />
@@ -240,7 +268,14 @@ export function PageShell(p: {
             open={mobileOpen}
             onClose={() => setMobileOpen(false)}
             ModalProps={{ keepMounted: true }}
-            PaperProps={{ sx: { width: drawerWidth } }}
+            PaperProps={{
+              sx: {
+                width: drawerWidth,
+                backgroundColor: "background.paper",
+                borderRight: "1px solid",
+                borderRightColor: "divider"
+              }
+            }}
           >
             {drawerContent}
           </Drawer>
@@ -252,7 +287,7 @@ export function PageShell(p: {
             flex: 1,
             minWidth: 0,
             px: { xs: 2, md: 2 },
-            py: { xs: 2, md: 2 },
+            py: { xs: 2, md: 2 }
           }}
         >
           {p.children}
