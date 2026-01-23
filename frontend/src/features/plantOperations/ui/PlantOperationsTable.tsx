@@ -1,4 +1,3 @@
-//frontend\src\features\plantOperations\ui\PlantOperationsTable.tsx
 import {
   Box,
   IconButton,
@@ -13,6 +12,7 @@ import {
   Tooltip,
   Typography
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import { gql } from "@apollo/client";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useState } from "react";
@@ -138,6 +138,8 @@ export function PlantOperationsTable(p: {
   onCommit: (opId: string, tier: Tier, nextValue: number, currentValue: number) => Promise<void>;
   onRefetch: () => Promise<void>;
 }) {
+  const theme = useTheme();
+
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const tiers = useMemo(() => TIERS, []);
@@ -174,6 +176,16 @@ export function PlantOperationsTable(p: {
   const col1 = 280;
   const col2 = 140;
   const col3 = 170;
+
+  const headBg =
+    theme.palette.mode === "dark"
+      ? alpha(theme.palette.primary.main, 0.22)
+      : alpha(theme.palette.primary.main, 0.10);
+
+  const stickyBorder =
+    theme.palette.mode === "dark"
+      ? alpha(theme.palette.common.white, 0.10)
+      : alpha(theme.palette.common.black, 0.10);
 
   function openCreate() {
     setOpForm({
@@ -259,12 +271,12 @@ export function PlantOperationsTable(p: {
 
   const lowMarginTip = (
     <Box sx={{ whiteSpace: "pre-line", textAlign: "center" }}>
-      El número no puede{"\n"}ser menor a 5%
+      El margen no puede{"\n"}ser menor o igual a 5%
     </Box>
   );
 
   return (
-    <Paper elevation={0} variant="outlined">
+    <Paper elevation={0} variant="outlined" sx={{ borderRadius: 3 }}>
       <TableContainer
         className="w-full"
         sx={{
@@ -281,9 +293,10 @@ export function PlantOperationsTable(p: {
                   left: 0,
                   zIndex: 4,
                   minWidth: col1,
-                  backgroundColor: "grey.900",
-                  color: "common.white",
-                  fontWeight: 800
+                  backgroundColor: headBg,
+                  color: "text.primary",
+                  fontWeight: 900,
+                  borderRight: `1px solid ${stickyBorder}`
                 }}
               >
                 Tipo de cliente
@@ -295,12 +308,13 @@ export function PlantOperationsTable(p: {
                   left: col1,
                   zIndex: 4,
                   minWidth: col2,
-                  backgroundColor: "grey.900",
-                  color: "common.white",
-                  fontWeight: 800
+                  backgroundColor: headBg,
+                  color: "text.primary",
+                  fontWeight: 900,
+                  borderRight: `1px solid ${stickyBorder}`
                 }}
               >
-                Classe x color
+                Clase x color
               </TableCell>
 
               <TableCell
@@ -309,9 +323,10 @@ export function PlantOperationsTable(p: {
                   left: col1 + col2,
                   zIndex: 4,
                   minWidth: col3,
-                  backgroundColor: "grey.900",
-                  color: "common.white",
-                  fontWeight: 800
+                  backgroundColor: headBg,
+                  color: "text.primary",
+                  fontWeight: 900,
+                  borderRight: `1px solid ${stickyBorder}`
                 }}
               >
                 Vincular precio
@@ -323,9 +338,9 @@ export function PlantOperationsTable(p: {
                   align="center"
                   sx={{
                     minWidth: 96,
-                    backgroundColor: "grey.900",
-                    color: "common.white",
-                    fontWeight: 800
+                    backgroundColor: headBg,
+                    color: "text.primary",
+                    fontWeight: 900
                   }}
                 >
                   {tierLabel(t)}
@@ -345,7 +360,10 @@ export function PlantOperationsTable(p: {
                     <TableCell
                       colSpan={3 + tiers.length}
                       sx={{
-                        backgroundColor: "action.hover",
+                        backgroundColor:
+                          theme.palette.mode === "dark"
+                            ? alpha(theme.palette.common.white, 0.04)
+                            : alpha(theme.palette.common.black, 0.03),
                         borderBottom: "1px solid",
                         borderBottomColor: "divider",
                         py: 0.75
@@ -374,6 +392,11 @@ export function PlantOperationsTable(p: {
                           aria-label="add"
                           onClick={openCreate}
                           disabled={savingStructure}
+                          sx={{
+                            border: "1px solid",
+                            borderColor: alpha(theme.palette.primary.main, 0.25),
+                            backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.14 : 0.08)
+                          }}
                         >
                           <AddIcon />
                         </IconButton>
@@ -430,7 +453,8 @@ export function PlantOperationsTable(p: {
                       minWidth: col2,
                       backgroundColor: zebra ? "background.default" : "action.hover",
                       borderRight: "1px solid",
-                      borderRightColor: "divider"
+                      borderRightColor: "divider",
+                      fontWeight: 700
                     }}
                   >
                     {num(r.operation.basePriceUsd).toFixed(2)} USD
@@ -444,7 +468,8 @@ export function PlantOperationsTable(p: {
                       minWidth: col3,
                       backgroundColor: zebra ? "background.default" : "action.hover",
                       borderRight: "1px solid",
-                      borderRightColor: "divider"
+                      borderRightColor: "divider",
+                      fontWeight: 700
                     }}
                   >
                     {r.operation.linkMode === "BY_STRUCTURE" ? "Por estructura" : "No vincular"}
@@ -536,12 +561,13 @@ export function PlantOperationsTable(p: {
                               }}
                               sx={{
                                 width: 92,
-                                "& .MuiInputBase-input": { textAlign: "center" },
+                                "& .MuiInputBase-input": { textAlign: "center", fontWeight: 700 },
                                 "& .MuiFormHelperText-root": { minHeight: 28 },
                                 ...(isLow
                                   ? {
                                       "& .MuiOutlinedInput-root": {
-                                        backgroundColor: "rgba(244, 67, 54, 0.10)"
+                                        backgroundColor: alpha(theme.palette.error.main, 0.10),
+                                        borderRadius: 2
                                       }
                                     }
                                   : {})
@@ -554,7 +580,7 @@ export function PlantOperationsTable(p: {
                   })}
                 </TableRow>
               );
-            })}  
+            })}
           </TableBody>
         </Table>
       </TableContainer>

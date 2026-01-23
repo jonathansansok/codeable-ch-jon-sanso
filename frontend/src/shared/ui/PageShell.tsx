@@ -9,12 +9,12 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  useMediaQuery,
+  useMediaQuery
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useMemo, useState } from "react";
 import { useColorMode } from "../../app/theme/colorMode";
-import { FiChevronLeft, FiChevronRight, FiMenu } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiMenu, FiMoon, FiSun } from "react-icons/fi";
 
 type NavItem = {
   key: string;
@@ -22,11 +22,7 @@ type NavItem = {
 };
 
 function ThemeIcon(p: { mode: "light" | "dark" }) {
-  return (
-    <span style={{ fontSize: 18, lineHeight: 1 }}>
-      {p.mode === "dark" ? "☾" : "☼"}
-    </span>
-  );
+  return p.mode === "dark" ? <FiMoon size={18} /> : <FiSun size={18} />;
 }
 
 export function PageShell(p: {
@@ -40,8 +36,8 @@ export function PageShell(p: {
   const theme = useTheme();
   const mdUp = useMediaQuery(theme.breakpoints.up("md"));
 
-  const drawerWidth = 280;
-  const railWidth = 16;
+  const drawerWidth = 284;
+  const railWidth = 18;
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -90,15 +86,16 @@ export function PageShell(p: {
                 mb: 0.5,
                 borderRadius: 2,
                 px: 2,
-                borderLeft: selected ? "3px solid" : "3px solid transparent",
-                borderLeftColor: selected ? "primary.main" : "transparent",
+                border: "1px solid",
+                borderColor: selected ? alpha(theme.palette.primary.main, 0.35) : "transparent",
+                backgroundColor: selected ? alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.18 : 0.1) : "transparent"
               }}
             >
               <ListItemText
                 primary={x.label}
                 primaryTypographyProps={{
-                  fontWeight: selected ? 800 : 600,
-                  noWrap: true,
+                  fontWeight: selected ? 900 : 700,
+                  noWrap: true
                 }}
               />
             </ListItemButton>
@@ -116,7 +113,7 @@ export function PageShell(p: {
           pb: 1,
           display: "flex",
           justifyContent: "flex-end",
-          pointerEvents: "none",
+          pointerEvents: "none"
         }}
       >
         <IconButton
@@ -130,8 +127,8 @@ export function PageShell(p: {
             border: "1px solid",
             borderColor: "divider",
             backgroundColor: "background.paper",
-            boxShadow: "0 10px 30px rgba(0,0,0,.25)",
-            "&:hover": { backgroundColor: "action.hover" },
+            boxShadow: theme.palette.mode === "dark" ? "0 10px 30px rgba(0,0,0,.45)" : "0 10px 30px rgba(0,0,0,.16)",
+            "&:hover": { backgroundColor: "action.hover" }
           }}
         >
           <FiChevronLeft size={20} />
@@ -142,7 +139,14 @@ export function PageShell(p: {
 
   return (
     <Box className="min-h-screen">
-      <AppBar position="sticky" elevation={0} color="transparent">
+      <AppBar
+        position="sticky"
+        elevation={0}
+        color="transparent"
+        sx={{
+          backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.72 : 0.78)
+        }}
+      >
         <Toolbar className="flex items-center justify-between">
           <Box className="flex items-center gap-2 min-w-0">
             {!isDesktop && (
@@ -165,7 +169,7 @@ export function PageShell(p: {
             </Box>
           </Box>
 
-          <IconButton onClick={cm.toggle} aria-label="toggle theme">
+          <IconButton onClick={cm.toggle} aria-label="toggle theme" sx={{ width: 40, height: 40 }}>
             <ThemeIcon mode={cm.mode} />
           </IconButton>
         </Toolbar>
@@ -187,7 +191,11 @@ export function PageShell(p: {
                   borderRight: "1px solid",
                   borderRightColor: "divider",
                   overflowX: "hidden",
-                },
+                  backgroundImage:
+                    theme.palette.mode === "dark"
+                      ? "radial-gradient(800px 400px at 10% 0%, rgba(9,105,218,0.14), transparent 55%)"
+                      : "radial-gradient(800px 400px at 10% 0%, rgba(9,105,218,0.10), transparent 55%)"
+                }
               }}
             >
               {drawerContent}
@@ -201,7 +209,7 @@ export function PageShell(p: {
                   position: "relative",
                   borderRight: "1px solid",
                   borderRightColor: "divider",
-                  backgroundColor: "transparent",
+                  backgroundColor: "transparent"
                 }}
               >
                 <Box
@@ -211,7 +219,7 @@ export function PageShell(p: {
                     zIndex: 2,
                     display: "flex",
                     justifyContent: "center",
-                    pt: 1,
+                    pt: 1
                   }}
                 >
                   <IconButton
@@ -224,8 +232,8 @@ export function PageShell(p: {
                       border: "1px solid",
                       borderColor: "divider",
                       backgroundColor: "background.paper",
-                      boxShadow: "0 10px 30px rgba(0,0,0,.25)",
-                      "&:hover": { backgroundColor: "action.hover" },
+                      boxShadow: theme.palette.mode === "dark" ? "0 10px 30px rgba(0,0,0,.45)" : "0 10px 30px rgba(0,0,0,.16)",
+                      "&:hover": { backgroundColor: "action.hover" }
                     }}
                   >
                     <FiChevronRight size={20} />
@@ -252,7 +260,7 @@ export function PageShell(p: {
             flex: 1,
             minWidth: 0,
             px: { xs: 2, md: 2 },
-            py: { xs: 2, md: 2 },
+            py: { xs: 2, md: 2 }
           }}
         >
           {p.children}

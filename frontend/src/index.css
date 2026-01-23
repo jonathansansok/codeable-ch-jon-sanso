@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --gh-bg: 246 248 250;
+  --gh-bg2: 255 255 255;
+  --gh-text: 36 41 47;
+  --gh-muted: 87 96 106;
+  --gh-border: 208 215 222;
+
+  --gh-primary: 9 105 218;
+  --gh-primary-2: 31 111 235;
+
+  --gh-success: 26 127 55;
+  --gh-danger: 207 34 46;
+  --gh-warning: 154 103 0;
+
+  --gh-chip: 234 238 242;
+  --gh-chipText: 36 41 47;
+}
+
+[data-color-mode="dark"] {
+  --gh-bg: 13 17 23;
+  --gh-bg2: 22 27 34;
+  --gh-text: 230 237 243;
+  --gh-muted: 139 148 158;
+  --gh-border: 48 54 61;
+
+  --gh-primary: 47 129 247;
+  --gh-primary-2: 56 139 253;
+
+  --gh-success: 63 185 80;
+  --gh-danger: 248 81 73;
+  --gh-warning: 210 153 34;
+
+  --gh-chip: 33 38 45;
+  --gh-chipText: 230 237 243;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "Geist", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  background: linear-gradient(
+    180deg,
+    rgb(var(--gh-bg)) 0%,
+    rgb(var(--gh-bg2)) 45%,
+    rgb(var(--gh-bg)) 100%
+  );
+  color: rgb(var(--gh-text));
+}
+
+::selection {
+  background: rgba(var(--gh-primary), 0.25);
+}
+
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;

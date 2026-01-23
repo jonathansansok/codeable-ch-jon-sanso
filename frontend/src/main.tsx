@@ -1,3 +1,6 @@
+import "@fontsource/geist";
+import "@fontsource/geist-mono";
+
 import { createRoot } from "react-dom/client";
 import { ApolloProvider } from "@apollo/client/react";
 import { apollo } from "./apollo";
