@@ -1,17 +1,7 @@
-//frontend\src\features\plantOperations\ui\PlantOperationsTable.tsx
 import {
   Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -28,46 +18,19 @@ import { useMemo, useState } from "react";
 import type { PlantOpRow, Tier } from "../../../types/domain";
 import { TIERS, num, tierLabel } from "../utils/tiers";
 import { parseMargin } from "../validation/margin";
+import { buildItems } from "./utils/grouping";
+import type { RowItem } from "./utils/grouping";
+import { buildOpDebugText } from "./utils/operationDebug";
+import { OperationCellHeader } from "./components/OperationCellHeader";
+import { OperationFormDialog } from "./components/OperationFormDialog";
+import { initOpForm } from "./components/operationFormState";
+import type { OpFormState } from "./components/operationFormState";
 
 function AddIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <path d="M12 5v14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function EditIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M12 20h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path
-        d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4 11.5-11.5Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function CopyIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M9 9h10v10H9V9Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
     </svg>
   );
 }
@@ -122,41 +85,6 @@ type EnsurePlantOperationVars = {
   operationId: string;
 };
 
-type RowItem =
-  | { kind: "group"; id: string; label: string; count: number }
-  | { kind: "row"; id: string; row: PlantOpRow };
-
-function groupKey(name: string) {
-  const c = (name || "A").trim().toUpperCase().charCodeAt(0);
-  if (c <= "I".charCodeAt(0)) return "Tipo A";
-  if (c <= "R".charCodeAt(0)) return "Tipo B";
-  return "Tipo C";
-}
-
-type OpFormMode = "create" | "edit";
-
-type OpFormState = {
-  open: boolean;
-  mode: OpFormMode;
-  opId: string | null;
-  name: string;
-  basePriceUsd: string;
-  linkMode: LinkMode;
-  error: string | null;
-};
-
-function initOpForm(): OpFormState {
-  return {
-    open: false,
-    mode: "create",
-    opId: null,
-    name: "",
-    basePriceUsd: "0",
-    linkMode: "NONE",
-    error: null
-  };
-}
-
 function normalizeName(raw: string) {
   return raw.trim().replace(/\s+/g, " ");
 }
@@ -173,31 +101,6 @@ function parseUsd(raw: string) {
 function errMsg(e: unknown) {
   if (e instanceof Error) return e.message;
   return String(e);
-}
-
-function clipTextForCopy(v: unknown) {
-  const s = String(v ?? "");
-  return s.trim();
-}
-
-function buildOpDebugText(r: PlantOpRow, tiers: Tier[]) {
-  const lines: string[] = [];
-  lines.push(`id: ${clipTextForCopy(r.operation.id)}`);
-  lines.push(`name: ${clipTextForCopy(r.operation.name)}`);
-  lines.push(`basePriceUsd: ${num(r.operation.basePriceUsd)}`);
-  lines.push(`linkMode: ${clipTextForCopy(r.operation.linkMode)}`);
-
-  const marginByTier = new Map<Tier, number>();
-  for (const m of r.margins) marginByTier.set(m.tier, num(m.marginPercent));
-
-  lines.push("");
-  lines.push("margins:");
-  for (const t of tiers) {
-    const v = marginByTier.get(t) ?? 0;
-    lines.push(`  ${t}: ${v}`);
-  }
-
-  return lines.join("\n");
 }
 
 export function PlantOperationsTable(p: {
@@ -220,31 +123,13 @@ export function PlantOperationsTable(p: {
     EnsurePlantOperationVars
   >(ENSURE_PLANT_OPERATION);
 
-  const items = useMemo<RowItem[]>(() => {
-    const buckets = new Map<string, PlantOpRow[]>();
-    for (const r of p.rows) {
-      const g = groupKey(r.operation.name);
-      const arr = buckets.get(g) ?? [];
-      arr.push(r);
-      buckets.set(g, arr);
-    }
+  const savingStructure = upsertM.loading || ensureM.loading;
 
-    const order = ["Tipo A", "Tipo B", "Tipo C"];
-    const out: RowItem[] = [];
-    for (const g of order) {
-      const arr = buckets.get(g);
-      if (!arr || arr.length === 0) continue;
-      out.push({ kind: "group", id: `g:${g}`, label: g, count: arr.length });
-      for (const r of arr) out.push({ kind: "row", id: r.id, row: r });
-    }
-    return out;
-  }, [p.rows]);
+  const items = useMemo<RowItem[]>(() => buildItems(p.rows), [p.rows]);
 
   const col1 = 280;
   const col2 = 140;
   const col3 = 170;
-
-  const savingStructure = upsertM.loading || ensureM.loading;
 
   function openCreate() {
     setOpForm({
@@ -303,7 +188,7 @@ export function PlantOperationsTable(p: {
       ...(opForm.opId ? { id: opForm.opId } : {}),
       name,
       basePriceUsd: usd.value,
-      linkMode: opForm.linkMode
+      linkMode: opForm.linkMode as LinkMode
     };
 
     setOpForm((prev) => ({ ...prev, error: null }));
@@ -322,7 +207,6 @@ export function PlantOperationsTable(p: {
       }
 
       await p.onRefetch();
-
       setOpForm((prev) => ({ ...prev, open: false }));
     } catch (e: unknown) {
       setOpForm((prev) => ({ ...prev, error: errMsg(e) }));
@@ -463,44 +347,13 @@ export function PlantOperationsTable(p: {
                       borderRightColor: "divider"
                     }}
                   >
-                    <Box className="flex items-start justify-between gap-2">
-                      <Box className="min-w-0">
-                        <Typography fontWeight={800} noWrap>
-                          {r.operation.name}
-                        </Typography>
-
-                        <Box className="flex items-center gap-1.25 min-w-0">
-                          <Typography variant="caption" color="text.secondary" noWrap>
-                            id: {opId}
-                          </Typography>
-
-                          <Tooltip
-                            arrow
-                            placement="top"
-                            title={copied ? "Copiado" : "Copiar id + headers"}
-                          >
-                            <IconButton
-                              size="small"
-                              aria-label="copy"
-                              onClick={() => copyOpDebug(r)}
-                              disabled={savingStructure}
-                              sx={{ ml: 0.25 }}
-                            >
-                              <CopyIcon />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </Box>
-
-                      <IconButton
-                        size="small"
-                        aria-label="edit"
-                        onClick={() => openEdit(r)}
-                        disabled={savingStructure}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Box>
+                    <OperationCellHeader
+                      row={r}
+                      copied={copied}
+                      disabled={savingStructure}
+                      onCopy={copyOpDebug}
+                      onEdit={openEdit}
+                    />
                   </TableCell>
 
                   <TableCell
@@ -640,76 +493,13 @@ export function PlantOperationsTable(p: {
         </Table>
       </TableContainer>
 
-      <Dialog
-        open={opForm.open}
+      <OperationFormDialog
+        state={opForm}
+        saving={savingStructure}
         onClose={() => setOpForm((prev) => ({ ...prev, open: false }))}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle sx={{ fontWeight: 900 }}>
-          {opForm.mode === "create" ? "Nueva operación" : "Editar operación"}
-        </DialogTitle>
-
-        <DialogContent sx={{ pt: 1.5 }}>
-          <Box className="grid grid-cols-1 gap-3">
-            <TextField
-              label="Nombre"
-              value={opForm.name}
-              onChange={(e) => setOpForm((prev) => ({ ...prev, name: e.target.value }))}
-              fullWidth
-              autoFocus
-            />
-
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <TextField
-                label="Base USD"
-                value={opForm.basePriceUsd}
-                onChange={(e) => setOpForm((prev) => ({ ...prev, basePriceUsd: e.target.value }))}
-                fullWidth
-                inputMode="decimal"
-              />
-
-              <FormControl fullWidth>
-                <InputLabel id="linkmode-label">Vincular precio</InputLabel>
-                <Select
-                  labelId="linkmode-label"
-                  label="Vincular precio"
-                  value={opForm.linkMode}
-                  onChange={(e) =>
-                    setOpForm((prev) => ({ ...prev, linkMode: e.target.value as LinkMode }))
-                  }
-                >
-                  <MenuItem value="NONE">No vincular</MenuItem>
-                  <MenuItem value="BY_STRUCTURE">Por estructura</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            {opForm.error && (
-              <Typography color="error" variant="body2" sx={{ fontWeight: 700 }}>
-                {opForm.error}
-              </Typography>
-            )}
-          </Box>
-        </DialogContent>
-
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setOpForm((prev) => ({ ...prev, open: false }))}
-            disabled={savingStructure}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            onClick={submitOpForm}
-            disabled={savingStructure}
-            sx={{ fontWeight: 900 }}
-          >
-            {savingStructure ? "Guardando..." : "Guardar"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onChange={setOpForm}
+        onSubmit={submitOpForm}
+      />
     </Paper>
   );
 }
