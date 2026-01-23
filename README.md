@@ -95,9 +95,19 @@ Correr una vez (CI):
 cd frontend
 npm run test:run
 Notas:
+Tests incluidos (4 archivos)
 
-Se puede ejecutar npm run dev y npm run test en paralelo sin conflicto.
+validation/margin.test.ts
+Unit test. Prueba parseMargin: cómo se valida/parsea lo que el usuario escribe (vacío, inválido, negativo, decimal válido).
 
+utils/tiers.test.ts
+Unit test. Prueba tierLabel: transforma KG_300, T_1, etc. en labels “300 kg”, “1T”, “10T”.
+
+utils/margins.test.ts
+Unit test. Prueba marginsToRecord: completa tiers faltantes con 0 para tener un formato consistente.
+
+ui/PlantOperationsPage.test.tsx
+Test de integración (RTL). Verifica el flujo básico de la pantalla: render de “KROWDY”, edición de margen, alerta si <= 5%, y commit al perder foco (blur/refetch).
 MSW intercepta requests GraphQL en tests y responde con fixtures tipados.
 •	GraphQL: http://localhost:4000/graphql
 Smoke test GraphQL (PowerShell)
