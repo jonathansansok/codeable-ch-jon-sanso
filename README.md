@@ -43,6 +43,62 @@ docker compose logs -f backend
 docker compose logs -f frontend
 URLs
 •	Frontend: http://localhost:5173
+## Frontend
+
+### Tech Stack
+- React (Vite)
+- Apollo Client v4 (GraphQL)
+- Material UI (MUI) v7 + Emotion (styling engine)
+- TailwindCSS (utility classes para layout/spacing)
+- Zod (validación de inputs)
+- Testing: Vitest + React Testing Library + MSW (mock de GraphQL en integración)
+
+### Estructura (orientada a recruiter / mantenible)
+- `src/app/` providers y theme (ColorMode + MUI ThemeProvider)
+- `src/shared/` UI shell reutilizable (`PageShell`)
+- `src/features/plantOperations/`
+  - `api/` queries/mutations + hooks
+  - `ui/` página + tabla + selector
+  - `utils/` helpers (tiers, labels)
+  - `validation/` parse/validate (Zod)
+
+### UI / UX (según consigna)
+- Pantalla de matriz por planta (PlantSelector + tabla)
+- Edición de celda por tier (commit onBlur)
+- Alerta de margen bajo (≤ 5%) en la celda (Tooltip + highlight)
+- Filtro frontend: “Ver solo empresas con datos sobre-escritos” (sin tocar backend)
+
+### Ejecutar Frontend (Local)
+
+cd frontend
+npm i
+npm run dev
+Frontend:
+
+http://localhost:5173
+
+Variables de Entorno (Frontend)
+Opcional para apuntar a GraphQL:
+
+VITE_GRAPHQL_URL=http://localhost:4000/graphql
+
+Tests (Frontend)
+Los tests del frontend son integration tests de UI con mock de GraphQL vía MSW
+(no requiere backend corriendo).
+
+Correr en modo watch:
+
+cd frontend
+npm run test
+Correr una vez (CI):
+
+cd frontend
+npm run test:run
+Notas:
+
+Se puede ejecutar npm run dev y npm run test en paralelo sin conflicto.
+
+MSW intercepta requests GraphQL en tests y responde con fixtures tipados.
 •	GraphQL: http://localhost:4000/graphql
 Smoke test GraphQL (PowerShell)
 $body = @{ query = 'query { __typename }' } | ConvertTo-Json
