@@ -10,7 +10,7 @@ import {
   TableRow,
   TextField,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
 import { gql } from "@apollo/client";
 import { useMutation } from "@apollo/client/react";
@@ -29,8 +29,18 @@ import type { OpFormState } from "./components/operationFormState";
 function AddIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M12 5v14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M12 5v14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M5 12h14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -42,7 +52,10 @@ function ChevronIcon(p: { collapsed: boolean }) {
       height="18"
       viewBox="0 0 24 24"
       fill="none"
-      style={{ transform: p.collapsed ? "rotate(-90deg)" : "rotate(0deg)", transition: "120ms" }}
+      style={{
+        transform: p.collapsed ? "rotate(-90deg)" : "rotate(0deg)",
+        transition: "120ms",
+      }}
     >
       <path
         d="M6 9l6 6 6-6"
@@ -121,8 +134,10 @@ function parseUsd(raw: string) {
   const t = raw.trim();
   if (t === "") return { ok: true as const, value: 0 };
   const n = Number(t);
-  if (!Number.isFinite(n)) return { ok: false as const, message: "Base USD inválido" };
-  if (n < 0) return { ok: false as const, message: "Base USD no puede ser negativo" };
+  if (!Number.isFinite(n))
+    return { ok: false as const, message: "Base USD inválido" };
+  if (n < 0)
+    return { ok: false as const, message: "Base USD no puede ser negativo" };
   return { ok: true as const, value: n };
 }
 
@@ -134,7 +149,12 @@ function errMsg(e: unknown) {
 export function PlantOperationsTable(p: {
   plantId: string;
   rows: PlantOpRow[];
-  onCommit: (opId: string, tier: Tier, nextValue: number, currentValue: number) => Promise<void>;
+  onCommit: (
+    opId: string,
+    tier: Tier,
+    nextValue: number,
+    currentValue: number,
+  ) => Promise<void>;
   onRefetch: () => Promise<void>;
 }) {
   const [draft, setDraft] = useState<Record<string, string>>({});
@@ -144,9 +164,10 @@ export function PlantOperationsTable(p: {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
-  const [upsertOperation, upsertM] = useMutation<UpsertOperationData, UpsertOperationVars>(
-    UPSERT_OPERATION
-  );
+  const [upsertOperation, upsertM] = useMutation<
+    UpsertOperationData,
+    UpsertOperationVars
+  >(UPSERT_OPERATION);
   const [ensurePlantOperation, ensureM] = useMutation<
     EnsurePlantOperationData,
     EnsurePlantOperationVars
@@ -182,7 +203,7 @@ export function PlantOperationsTable(p: {
       name: "",
       basePriceUsd: "0",
       linkMode: "NONE",
-      error: null
+      error: null,
     });
   }
 
@@ -194,7 +215,7 @@ export function PlantOperationsTable(p: {
       name: r.operation.name ?? "",
       basePriceUsd: String(num(r.operation.basePriceUsd)),
       linkMode: r.operation.linkMode as LinkMode,
-      error: null
+      error: null,
     });
   }
 
@@ -204,7 +225,10 @@ export function PlantOperationsTable(p: {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedKey(id);
-      window.setTimeout(() => setCopiedKey((prev) => (prev === id ? null : prev)), 1400);
+      window.setTimeout(
+        () => setCopiedKey((prev) => (prev === id ? null : prev)),
+        1400,
+      );
     } catch {
       setCopiedKey(null);
     }
@@ -231,7 +255,7 @@ export function PlantOperationsTable(p: {
       ...(opForm.opId ? { id: opForm.opId } : {}),
       name,
       basePriceUsd: usd.value,
-      linkMode: opForm.linkMode as LinkMode
+      linkMode: opForm.linkMode as LinkMode,
     };
 
     setOpForm((prev) => ({ ...prev, error: null }));
@@ -241,12 +265,17 @@ export function PlantOperationsTable(p: {
 
       const operationId = String(res.data?.upsertOperation?.id ?? "");
       if (!operationId) {
-        setOpForm((prev) => ({ ...prev, error: "No se pudo guardar la operación" }));
+        setOpForm((prev) => ({
+          ...prev,
+          error: "No se pudo guardar la operación",
+        }));
         return;
       }
 
       if (opForm.mode === "create") {
-        await ensurePlantOperation({ variables: { plantId: p.plantId, operationId } });
+        await ensurePlantOperation({
+          variables: { plantId: p.plantId, operationId },
+        });
       }
 
       await p.onRefetch();
@@ -263,9 +292,33 @@ export function PlantOperationsTable(p: {
   );
 
   return (
-    <Paper elevation={0} variant="outlined" sx={{ borderRadius: 3 }}>
-      <TableContainer className="w-full" sx={{ overflowX: "auto", maxHeight: "none" }}>
-        <Table stickyHeader size="small" sx={{ minWidth: 1180 }}>
+    <Paper
+      elevation={0}
+      sx={{
+        borderRadius: 1,
+        overflow: "hidden",
+        border: "1px solid",
+        borderColor: "divider",
+        boxShadow: (t) =>
+          t.palette.mode === "dark"
+            ? "0 10px 30px rgba(0,0,0,0.40)"
+            : "0 10px 30px rgba(0,0,0,0.12)",
+      }}
+    >
+      <TableContainer
+        className="w-full"
+        sx={{ overflowX: "auto", maxHeight: "none" }}
+      >
+        <Table
+          stickyHeader
+          size="small"
+          sx={{
+            minWidth: 1180,
+            borderCollapse: "separate",
+            borderSpacing: 0,
+            "& .MuiTableCell-root": { borderBottomColor: "divider" },
+          }}
+        >
           <TableHead>
             <TableRow>
               <TableCell
@@ -274,11 +327,13 @@ export function PlantOperationsTable(p: {
                   left: 0,
                   zIndex: 4,
                   minWidth: col1,
-                  backgroundColor: (t) => (t.palette.mode === "dark" ? "primary.dark" : "primary.main"),
+                  backgroundColor: (t) =>
+                    t.palette.mode === "dark" ? "primary.dark" : "primary.main",
                   color: "common.white",
                   fontWeight: 900,
                   borderBottom: "1px solid",
-                  borderBottomColor: "divider"
+                  borderBottomColor: "divider",
+                  borderTopLeftRadius: 12,
                 }}
               >
                 Tipo de cliente
@@ -290,11 +345,12 @@ export function PlantOperationsTable(p: {
                   left: col1,
                   zIndex: 4,
                   minWidth: col2,
-                  backgroundColor: (t) => (t.palette.mode === "dark" ? "primary.dark" : "primary.main"),
+                  backgroundColor: (t) =>
+                    t.palette.mode === "dark" ? "primary.dark" : "primary.main",
                   color: "common.white",
                   fontWeight: 900,
                   borderBottom: "1px solid",
-                  borderBottomColor: "divider"
+                  borderBottomColor: "divider",
                 }}
               >
                 Classe x color
@@ -306,27 +362,34 @@ export function PlantOperationsTable(p: {
                   left: col1 + col2,
                   zIndex: 4,
                   minWidth: col3,
-                  backgroundColor: (t) => (t.palette.mode === "dark" ? "primary.dark" : "primary.main"),
+                  backgroundColor: (t) =>
+                    t.palette.mode === "dark" ? "primary.dark" : "primary.main",
                   color: "common.white",
                   fontWeight: 900,
                   borderBottom: "1px solid",
-                  borderBottomColor: "divider"
+                  borderBottomColor: "divider",
                 }}
               >
                 Vincular precio
               </TableCell>
 
-              {tiers.map((t) => (
+              {tiers.map((t, i) => (
                 <TableCell
                   key={t}
                   align="center"
                   sx={{
                     minWidth: 96,
-                    backgroundColor: (x) => (x.palette.mode === "dark" ? "primary.dark" : "primary.main"),
+                    backgroundColor: (x) =>
+                      x.palette.mode === "dark"
+                        ? "primary.dark"
+                        : "primary.main",
                     color: "common.white",
                     fontWeight: 900,
                     borderBottom: "1px solid",
-                    borderBottomColor: "divider"
+                    borderBottomColor: "divider",
+                    ...(i === tiers.length - 1
+                      ? { borderTopRightRadius: 12, pr: 4 }
+                      : {}),
                   }}
                 >
                   {tierLabel(t)}
@@ -349,27 +412,65 @@ export function PlantOperationsTable(p: {
                         backgroundColor: "action.hover",
                         borderBottom: "1px solid",
                         borderBottomColor: "divider",
-                        py: 0.75
+                        py: 0.25,
                       }}
                     >
-                      <Box className="flex items-center justify-between">
-                        <Box className="flex items-center gap-2">
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          minHeight: 40,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.25,
+                            minWidth: 0,
+                          }}
+                        >
                           <IconButton
                             size="small"
                             aria-label="toggle"
-                            onClick={() => setCollapsed((prev) => ({ ...prev, [gid]: !isCollapsed }))}
+                            onClick={() =>
+                              setCollapsed((prev) => ({
+                                ...prev,
+                                [gid]: !isCollapsed,
+                              }))
+                            }
                             sx={{
-                              border: "1px solid",
-                              borderColor: "divider",
-                              borderRadius: 2
+                              p: 0.75,
+                              borderRadius: 2,
+                              border: "none",
+                              boxShadow: (t) =>
+                                t.palette.mode === "dark"
+                                  ? "0 6px 14px rgba(0,0,0,0.35)"
+                                  : "0 6px 14px rgba(0,0,0,0.14)",
+                              backgroundColor: "background.paper",
                             }}
                           >
                             <ChevronIcon collapsed={isCollapsed} />
                           </IconButton>
 
-                          <Box className="leading-tight">
-                            <Typography fontWeight={900}>{it.label}</Typography>
-                            <Typography variant="caption" color="text.secondary">
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              minWidth: 0,
+                            }}
+                          >
+                            <Typography fontWeight={950} noWrap>
+                              {it.label}
+                            </Typography>
+
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ fontWeight: 800, whiteSpace: "nowrap" }}
+                            >
                               {it.count} clientes
                             </Typography>
                           </Box>
@@ -381,9 +482,14 @@ export function PlantOperationsTable(p: {
                           onClick={openCreate}
                           disabled={savingStructure}
                           sx={{
-                            border: "1px solid",
-                            borderColor: "divider",
-                            borderRadius: 2
+                            p: 0.75,
+                            borderRadius: 2,
+                            border: "none",
+                            boxShadow: (t) =>
+                              t.palette.mode === "dark"
+                                ? "0 6px 14px rgba(0,0,0,0.35)"
+                                : "0 6px 14px rgba(0,0,0,0.14)",
+                            backgroundColor: "background.paper",
                           }}
                         >
                           <AddIcon />
@@ -400,7 +506,9 @@ export function PlantOperationsTable(p: {
               const zebra = idx % 2 === 0;
 
               const marginByTier = new Map<Tier, number>();
-              r.margins.forEach((m) => marginByTier.set(m.tier, num(m.marginPercent)));
+              r.margins.forEach((m) =>
+                marginByTier.set(m.tier, num(m.marginPercent)),
+              );
 
               const opId = String(r.operation.id ?? "");
               const copied = copiedKey === opId;
@@ -410,7 +518,9 @@ export function PlantOperationsTable(p: {
                   key={r.id}
                   hover
                   sx={{
-                    backgroundColor: zebra ? "background.paper" : "background.default"
+                    backgroundColor: zebra
+                      ? "background.paper"
+                      : "background.default",
                   }}
                 >
                   <TableCell
@@ -419,9 +529,12 @@ export function PlantOperationsTable(p: {
                       left: 0,
                       zIndex: 3,
                       minWidth: col1,
-                      backgroundColor: zebra ? "background.paper" : "background.default",
+                      backgroundColor: zebra
+                        ? "background.paper"
+                        : "background.default",
                       borderRight: "1px solid",
-                      borderRightColor: "divider"
+                      borderRightColor: "divider",
+                      py: 1,
                     }}
                   >
                     <OperationCellHeader
@@ -439,10 +552,13 @@ export function PlantOperationsTable(p: {
                       left: col1,
                       zIndex: 2,
                       minWidth: col2,
-                      backgroundColor: zebra ? "background.paper" : "background.default",
+                      backgroundColor: zebra
+                        ? "background.paper"
+                        : "background.default",
                       borderRight: "1px solid",
                       borderRightColor: "divider",
-                      fontWeight: 800
+                      fontWeight: 800,
+                      py: 1,
                     }}
                   >
                     {num(r.operation.basePriceUsd).toFixed(2)} USD
@@ -454,16 +570,21 @@ export function PlantOperationsTable(p: {
                       left: col1 + col2,
                       zIndex: 2,
                       minWidth: col3,
-                      backgroundColor: zebra ? "background.paper" : "background.default",
+                      backgroundColor: zebra
+                        ? "background.paper"
+                        : "background.default",
                       borderRight: "1px solid",
                       borderRightColor: "divider",
-                      fontWeight: 800
+                      fontWeight: 800,
+                      py: 1,
                     }}
                   >
-                    {r.operation.linkMode === "BY_STRUCTURE" ? "Por estructura" : "No vincular"}
+                    {r.operation.linkMode === "BY_STRUCTURE"
+                      ? "Por estructura"
+                      : "No vincular"}
                   </TableCell>
 
-                  {tiers.map((t) => {
+                  {tiers.map((t, i) => {
                     const key = `${r.operation.id}:${t}`;
                     const current = marginByTier.get(t) ?? 0;
                     const value = draft[key] ?? String(current);
@@ -477,7 +598,14 @@ export function PlantOperationsTable(p: {
                     const showLowTip = wasTouched && isLow;
 
                     return (
-                      <TableCell key={t} align="center">
+                      <TableCell
+                        key={t}
+                        align="center"
+                        sx={{
+                          py: 0.75,
+                          ...(i === tiers.length - 1 ? { pr: 4 } : {}),
+                        }}
+                      >
                         <Tooltip
                           arrow
                           placement="top"
@@ -487,21 +615,38 @@ export function PlantOperationsTable(p: {
                           disableTouchListener
                           title={lowMarginTip}
                         >
-                          <Box>
+                          <Box
+                            sx={{ display: "flex", justifyContent: "center" }}
+                          >
                             <TextField
                               value={value}
                               size="small"
                               type="text"
                               inputMode="decimal"
                               onFocus={() => {
-                                if (!touched[key]) setTouched((prev) => ({ ...prev, [key]: true }));
+                                if (!touched[key])
+                                  setTouched((prev) => ({
+                                    ...prev,
+                                    [key]: true,
+                                  }));
                               }}
                               onChange={(e) => {
-                                if (!touched[key]) setTouched((prev) => ({ ...prev, [key]: true }));
-                                setDraft((prev) => ({ ...prev, [key]: e.target.value }));
+                                if (!touched[key])
+                                  setTouched((prev) => ({
+                                    ...prev,
+                                    [key]: true,
+                                  }));
+                                setDraft((prev) => ({
+                                  ...prev,
+                                  [key]: e.target.value,
+                                }));
                               }}
                               onBlur={async () => {
-                                if (!touched[key]) setTouched((prev) => ({ ...prev, [key]: true }));
+                                if (!touched[key])
+                                  setTouched((prev) => ({
+                                    ...prev,
+                                    [key]: true,
+                                  }));
 
                                 const raw = draft[key];
                                 if (raw == null) return;
@@ -523,7 +668,12 @@ export function PlantOperationsTable(p: {
                                   return;
                                 }
 
-                                await p.onCommit(r.operation.id, t, parsed2.value, current);
+                                await p.onCommit(
+                                  r.operation.id,
+                                  t,
+                                  parsed2.value,
+                                  current,
+                                );
 
                                 setDraft((prev) => {
                                   const c = { ...prev };
@@ -537,21 +687,32 @@ export function PlantOperationsTable(p: {
                                 });
                               }}
                               error={!isValid}
-                              helperText={!isValid ? parsed.message : " "}
+                              helperText={!isValid ? parsed.message : ""}
                               FormHelperTextProps={{
                                 sx: {
                                   whiteSpace: "pre-line",
                                   textAlign: "center",
                                   lineHeight: 1.1,
-                                  mt: 0.5,
+                                  mt: 0.25,
                                   mx: 0,
-                                  fontWeight: 700
-                                }
+                                  fontWeight: 700,
+                                  minHeight: 0,
+                                },
                               }}
                               sx={{
                                 width: 92,
-                                "& .MuiInputBase-input": { textAlign: "center", fontWeight: 800 },
-                                "& .MuiFormHelperText-root": { minHeight: 28 },
+                                "& .MuiInputBase-root": {
+                                  height: 34,
+                                },
+                                "& .MuiInputBase-input": {
+                                  textAlign: "center",
+                                  fontWeight: 800,
+                                  py: 0,
+                                  px: 1.25,
+                                },
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: 999,
+                                },
                                 ...(isLow
                                   ? {
                                       "& .MuiOutlinedInput-root": (x) => ({
@@ -559,10 +720,9 @@ export function PlantOperationsTable(p: {
                                           x.palette.mode === "dark"
                                             ? "rgba(248, 81, 73, 0.14)"
                                             : "rgba(209, 36, 47, 0.10)",
-                                        borderRadius: 12
-                                      })
+                                      }),
                                     }
-                                  : {})
+                                  : {}),
                               }}
                             />
                           </Box>

@@ -5,12 +5,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material";
 import type { OpFormState } from "./operationFormState";
 
@@ -25,6 +26,12 @@ export function OperationFormDialog(p: {
 }) {
   const s = p.state;
 
+  const fieldSx = {
+    "& .MuiInputBase-root": { borderRadius: 2 },
+    "& .MuiOutlinedInput-input": { py: 1.25 },
+    "& .MuiSelect-select": { py: 1.25 },
+  } as const;
+
   return (
     <Dialog
       open={s.open}
@@ -35,46 +42,50 @@ export function OperationFormDialog(p: {
         sx: {
           borderRadius: 3,
           border: "1px solid",
-          borderColor: "divider"
-        }
+          borderColor: "divider",
+        },
       }}
     >
-      <DialogTitle sx={{ fontWeight: 950 }}>
+      <DialogTitle sx={{ fontWeight: 950, px: 4, pt: 3, pb: 2 }}>
         {s.mode === "create" ? "Nueva operación" : "Editar operación"}
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 1.5 }}>
-        <Box className="grid grid-cols-1 gap-3">
+      <Divider sx={{ mx: 4, borderColor: "common.white", opacity: 0.9 }} />
+
+      <DialogContent sx={{ px: 4, pt: 3, pb: 2.5 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3.25 }}>
           <TextField
             label="Nombre"
             value={s.name}
             onChange={(e) => p.onChange({ ...s, name: e.target.value })}
             fullWidth
             autoFocus
+            sx={fieldSx}
           />
 
-          <Box className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <TextField
-              label="Base USD"
-              value={s.basePriceUsd}
-              onChange={(e) => p.onChange({ ...s, basePriceUsd: e.target.value })}
-              fullWidth
-              inputMode="decimal"
-            />
+          <TextField
+            label="Base USD"
+            value={s.basePriceUsd}
+            onChange={(e) => p.onChange({ ...s, basePriceUsd: e.target.value })}
+            fullWidth
+            inputMode="decimal"
+            sx={fieldSx}
+          />
 
-            <FormControl fullWidth>
-              <InputLabel id="linkmode-label">Vincular precio</InputLabel>
-              <Select
-                labelId="linkmode-label"
-                label="Vincular precio"
-                value={s.linkMode}
-                onChange={(e) => p.onChange({ ...s, linkMode: e.target.value as LinkMode })}
-              >
-                <MenuItem value="NONE">No vincular</MenuItem>
-                <MenuItem value="BY_STRUCTURE">Por estructura</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <FormControl fullWidth sx={fieldSx}>
+            <InputLabel id="linkmode-label">Vincular precio</InputLabel>
+            <Select
+              labelId="linkmode-label"
+              label="Vincular precio"
+              value={s.linkMode}
+              onChange={(e) =>
+                p.onChange({ ...s, linkMode: e.target.value as LinkMode })
+              }
+            >
+              <MenuItem value="NONE">No vincular</MenuItem>
+              <MenuItem value="BY_STRUCTURE">Por estructura</MenuItem>
+            </Select>
+          </FormControl>
 
           {s.error && (
             <Typography color="error" variant="body2" sx={{ fontWeight: 800 }}>
@@ -84,13 +95,13 @@ export function OperationFormDialog(p: {
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions sx={{ px: 4, pb: 3, pt: 2.25, gap: 1.5 }}>
         <Button
           onClick={p.onClose}
           disabled={p.saving}
           variant="outlined"
           color="inherit"
-          sx={{ fontWeight: 900, borderRadius: 2 }}
+          sx={{ fontWeight: 900, borderRadius: 2, px: 2.5, py: 1.1 }}
         >
           Cancelar
         </Button>
@@ -98,7 +109,7 @@ export function OperationFormDialog(p: {
           variant="contained"
           onClick={p.onSubmit}
           disabled={p.saving}
-          sx={{ fontWeight: 950, borderRadius: 2 }}
+          sx={{ fontWeight: 950, borderRadius: 2, px: 3, py: 1.1 }}
         >
           {p.saving ? "Guardando..." : "Guardar"}
         </Button>

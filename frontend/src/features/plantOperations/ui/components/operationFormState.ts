@@ -1,3 +1,4 @@
+//frontend\src\features\plantOperations\ui\components\operationFormState.ts
 type LinkMode = "NONE" | "BY_STRUCTURE";
 type OpFormMode = "create" | "edit";
 
