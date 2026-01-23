@@ -35,6 +35,26 @@ function AddIcon() {
   );
 }
 
+function ChevronIcon(p: { collapsed: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      style={{ transform: p.collapsed ? "rotate(-90deg)" : "rotate(0deg)", transition: "120ms" }}
+    >
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const UPSERT_OPERATION = gql`
   mutation UpsertOperation($input: UpsertOperationInput!) {
     upsertOperation(input: $input) {
@@ -85,6 +105,14 @@ type EnsurePlantOperationVars = {
   operationId: string;
 };
 
+type GroupItem = Extract<RowItem, { kind: "group" }>;
+type DataItem = Extract<RowItem, { kind: "row" }>;
+
+type DecoratedGroupItem = GroupItem & { kind: "group"; groupId: string };
+type DecoratedDataItem = DataItem & { kind: "row"; groupId: string | null };
+
+type DecoratedItem = DecoratedGroupItem | DecoratedDataItem;
+
 function normalizeName(raw: string) {
   return raw.trim().replace(/\s+/g, " ");
 }
@@ -114,6 +142,7 @@ export function PlantOperationsTable(p: {
   const tiers = useMemo(() => TIERS, []);
   const [opForm, setOpForm] = useState<OpFormState>(() => initOpForm());
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const [upsertOperation, upsertM] = useMutation<UpsertOperationData, UpsertOperationVars>(
     UPSERT_OPERATION
@@ -125,7 +154,21 @@ export function PlantOperationsTable(p: {
 
   const savingStructure = upsertM.loading || ensureM.loading;
 
-  const items = useMemo<RowItem[]>(() => buildItems(p.rows), [p.rows]);
+  const itemsRaw = useMemo<RowItem[]>(() => buildItems(p.rows), [p.rows]);
+
+  const items = useMemo<DecoratedItem[]>(() => {
+    let currentGroupId: string | null = null;
+
+    return itemsRaw.map((it): DecoratedItem => {
+      if (it.kind === "group") {
+        const gid = String(it.id ?? "");
+        currentGroupId = gid || null;
+        return { ...it, groupId: gid };
+      }
+
+      return { ...it, groupId: currentGroupId };
+    });
+  }, [itemsRaw]);
 
   const col1 = 280;
   const col2 = 140;
@@ -220,8 +263,14 @@ export function PlantOperationsTable(p: {
   );
 
   return (
-    <Paper elevation={0} variant="outlined" className="overflow-hidden">
-      <TableContainer className="w-full" sx={{ maxHeight: { xs: 520, md: 720 } }}>
+    <Paper elevation={0} variant="outlined">
+      <TableContainer
+        className="w-full"
+        sx={{
+          overflowX: "auto",
+          maxHeight: "none"
+        }}
+      >
         <Table stickyHeader size="small" sx={{ minWidth: 1180 }}>
           <TableHead>
             <TableRow>
@@ -287,22 +336,36 @@ export function PlantOperationsTable(p: {
           <TableBody>
             {items.map((it, idx) => {
               if (it.kind === "group") {
+                const gid = it.groupId;
+                const isCollapsed = collapsed[gid] ?? false;
+
                 return (
-                  <TableRow key={it.id} hover={false}>
+                  <TableRow key={gid} hover={false}>
                     <TableCell
                       colSpan={3 + tiers.length}
                       sx={{
                         backgroundColor: "action.hover",
                         borderBottom: "1px solid",
-                        borderBottomColor: "divider"
+                        borderBottomColor: "divider",
+                        py: 0.75
                       }}
                     >
                       <Box className="flex items-center justify-between">
                         <Box className="flex items-center gap-2">
-                          <Typography fontWeight={900}>{it.label}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {it.count} clientes
-                          </Typography>
+                          <IconButton
+                            size="small"
+                            aria-label="toggle"
+                            onClick={() => setCollapsed((prev) => ({ ...prev, [gid]: !isCollapsed }))}
+                          >
+                            <ChevronIcon collapsed={isCollapsed} />
+                          </IconButton>
+
+                          <Box className="leading-tight">
+                            <Typography fontWeight={900}>{it.label}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {it.count} clientes
+                            </Typography>
+                          </Box>
                         </Box>
 
                         <IconButton
@@ -318,6 +381,8 @@ export function PlantOperationsTable(p: {
                   </TableRow>
                 );
               }
+
+              if (it.groupId && collapsed[it.groupId]) return null;
 
               const r = it.row;
               const zebra = idx % 2 === 0;
@@ -394,7 +459,7 @@ export function PlantOperationsTable(p: {
                     const nextValue = parsed.ok ? parsed.value : current;
                     const isLow = isValid && nextValue <= 5;
 
-                    const wasTouched = Boolean(touched[key]);
+                    const wasTouched = touched[key] ?? false;
                     const showLowTip = wasTouched && isLow;
 
                     return (
