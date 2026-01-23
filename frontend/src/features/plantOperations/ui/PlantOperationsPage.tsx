@@ -108,7 +108,17 @@ const rows = useMemo(() => {
         <Alert severity="info">Sin operaciones para esta planta.</Alert>
       )}
 
-      {rows.length > 0 && <PlantOperationsTable rows={rows} onCommit={onCommit} />}
+     {rows.length > 0 && (
+  <PlantOperationsTable
+    plantId={effectivePlantId}
+    rows={rows}
+    onCommit={onCommit}
+    onRefetch={async () => {
+  await opsQ.refetch();
+}}
+  />
+)}
+
 
       {setMarginM.error && <Alert severity="error">Error guardando: {setMarginM.error.message}</Alert>}
     </Box>

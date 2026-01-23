@@ -1,7 +1,16 @@
 import {
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -12,6 +21,8 @@ import {
   Tooltip,
   Typography
 } from "@mui/material";
+import { gql } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import { useMemo, useState } from "react";
 import type { PlantOpRow, Tier } from "../../../types/domain";
 import { TIERS, num, tierLabel } from "../utils/tiers";
@@ -29,12 +40,7 @@ function AddIcon() {
 function EditIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 20h9"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <path d="M12 20h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path
         d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4 11.5-11.5Z"
         stroke="currentColor"
@@ -45,6 +51,55 @@ function EditIcon() {
     </svg>
   );
 }
+
+const UPSERT_OPERATION = gql`
+  mutation UpsertOperation($input: UpsertOperationInput!) {
+    upsertOperation(input: $input) {
+      id
+      name
+      basePriceUsd
+      linkMode
+    }
+  }
+`;
+
+const ENSURE_PLANT_OPERATION = gql`
+  mutation EnsurePlantOperation($plantId: ID!, $operationId: ID!) {
+    ensurePlantOperation(plantId: $plantId, operationId: $operationId) {
+      id
+    }
+  }
+`;
+
+type LinkMode = "NONE" | "BY_STRUCTURE";
+type UpsertOperationInput = {
+  id?: string;
+  name: string;
+  basePriceUsd: number;
+  linkMode: LinkMode;
+};
+
+type UpsertOperationData = {
+  upsertOperation: {
+    id: string;
+    name: string;
+    basePriceUsd: number;
+    linkMode: LinkMode;
+  };
+};
+
+type UpsertOperationVars = {
+  input: UpsertOperationInput;
+};
+
+type EnsurePlantOperationData = {
+  ensurePlantOperation: { id: string };
+};
+
+type EnsurePlantOperationVars = {
+  plantId: string;
+  operationId: string;
+};
 
 type RowItem =
   | { kind: "group"; id: string; label: string; count: number }
@@ -57,12 +112,58 @@ function groupKey(name: string) {
   return "Tipo C";
 }
 
+type OpFormMode = "create" | "edit";
+
+type OpFormState = {
+  open: boolean;
+  mode: OpFormMode;
+  opId: string | null;
+  name: string;
+  basePriceUsd: string;
+  linkMode: LinkMode;
+  error: string | null;
+};
+
+function initOpForm(): OpFormState {
+  return {
+    open: false,
+    mode: "create",
+    opId: null,
+    name: "",
+    basePriceUsd: "0",
+    linkMode: "NONE",
+    error: null
+  };
+}
+
+function normalizeName(raw: string) {
+  return raw.trim().replace(/\s+/g, " ");
+}
+
+function parseUsd(raw: string) {
+  const t = raw.trim();
+  if (t === "") return { ok: true as const, value: 0 };
+  const n = Number(t);
+  if (!Number.isFinite(n)) return { ok: false as const, message: "Base USD inválido" };
+  if (n < 0) return { ok: false as const, message: "Base USD no puede ser negativo" };
+  return { ok: true as const, value: n };
+}
+function errMsg(e: unknown) {
+  if (e instanceof Error) return e.message;
+  return String(e);
+}
 export function PlantOperationsTable(p: {
+  plantId: string;
   rows: PlantOpRow[];
   onCommit: (opId: string, tier: Tier, nextValue: number, currentValue: number) => Promise<void>;
+  onRefetch: () => Promise<void>;
 }) {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const tiers = useMemo(() => TIERS, []);
+  const [opForm, setOpForm] = useState<OpFormState>(() => initOpForm());
+const [upsertOperation, upsertM] = useMutation<UpsertOperationData, UpsertOperationVars>(UPSERT_OPERATION);
+const [ensurePlantOperation, ensureM] = useMutation<EnsurePlantOperationData, EnsurePlantOperationVars>(ENSURE_PLANT_OPERATION);
+
 
   const items = useMemo<RowItem[]>(() => {
     const buckets = new Map<string, PlantOpRow[]>();
@@ -87,6 +188,83 @@ export function PlantOperationsTable(p: {
   const col1 = 280;
   const col2 = 140;
   const col3 = 170;
+
+  const savingStructure = upsertM.loading || ensureM.loading;
+
+  function openCreate() {
+    setOpForm({
+      open: true,
+      mode: "create",
+      opId: null,
+      name: "",
+      basePriceUsd: "0",
+      linkMode: "NONE",
+      error: null
+    });
+  }
+
+  function openEdit(r: PlantOpRow) {
+    setOpForm({
+      open: true,
+      mode: "edit",
+      opId: r.operation.id,
+      name: r.operation.name ?? "",
+      basePriceUsd: String(num(r.operation.basePriceUsd)),
+      linkMode: r.operation.linkMode,
+      error: null
+    });
+  }
+
+  async function submitOpForm() {
+    const name = normalizeName(opForm.name);
+    if (!name) {
+      setOpForm((prev) => ({ ...prev, error: "Nombre requerido" }));
+      return;
+    }
+    if (name.length > 160) {
+      setOpForm((prev) => ({ ...prev, error: "Nombre excede 160 caracteres" }));
+      return;
+    }
+
+    const usd = parseUsd(opForm.basePriceUsd);
+    if (!usd.ok) {
+      setOpForm((prev) => ({ ...prev, error: usd.message }));
+      return;
+    }
+
+    setOpForm((prev) => ({ ...prev, error: null }));
+
+    try {
+      const res = await upsertOperation({
+        variables: {
+          input: {
+            ...(opForm.opId ? { id: opForm.opId } : {}),
+            name,
+            basePriceUsd: usd.value,
+            linkMode: opForm.linkMode
+          }
+        }
+      });
+
+      const operationId = String(res.data?.upsertOperation?.id ?? "");
+      if (!operationId) {
+        setOpForm((prev) => ({ ...prev, error: "No se pudo guardar la operación" }));
+        return;
+      }
+
+      if (opForm.mode === "create") {
+        await ensurePlantOperation({
+          variables: { plantId: p.plantId, operationId }
+        });
+      }
+
+      await p.onRefetch();
+
+      setOpForm((prev) => ({ ...prev, open: false }));
+    } catch (e: unknown) {
+  setOpForm((prev) => ({ ...prev, error: errMsg(e) }));
+}
+  }
 
   return (
     <Paper elevation={0} variant="outlined" className="overflow-hidden">
@@ -173,7 +351,13 @@ export function PlantOperationsTable(p: {
                             {it.count} clientes
                           </Typography>
                         </Box>
-                        <IconButton size="small" aria-label="add">
+
+                        <IconButton
+                          size="small"
+                          aria-label="add"
+                          onClick={openCreate}
+                          disabled={savingStructure}
+                        >
                           <AddIcon />
                         </IconButton>
                       </Box>
@@ -217,7 +401,12 @@ export function PlantOperationsTable(p: {
                         </Typography>
                       </Box>
 
-                      <IconButton size="small" aria-label="edit">
+                      <IconButton
+                        size="small"
+                        aria-label="edit"
+                        onClick={() => openEdit(r)}
+                        disabled={savingStructure}
+                      >
                         <EditIcon />
                       </IconButton>
                     </Box>
@@ -271,44 +460,51 @@ export function PlantOperationsTable(p: {
                         >
                           <Box>
                             <TextField
-  value={value}
-  size="small"
-  type="text"
-  inputMode="decimal"
-  onChange={(e) => setDraft((prev) => ({ ...prev, [key]: e.target.value }))}
-  onBlur={async () => {
-    const raw = draft[key];
-    if (raw == null) return;
+                              value={value}
+                              size="small"
+                              type="text"
+                              inputMode="decimal"
+                              onChange={(e) =>
+                                setDraft((prev) => ({ ...prev, [key]: e.target.value }))
+                              }
+                              onBlur={async () => {
+                                const raw = draft[key];
+                                if (raw == null) return;
 
-    const parsed2 = parseMargin(raw);
-    if (!parsed2.ok) return;
+                                const parsed2 = parseMargin(raw);
+                                if (!parsed2.ok) return;
 
-    if (parsed2.value === current) {
-      setDraft((prev) => {
-        const c = { ...prev };
-        delete c[key];
-        return c;
-      });
-      return;
-    }
+                                if (parsed2.value === current) {
+                                  setDraft((prev) => {
+                                    const c = { ...prev };
+                                    delete c[key];
+                                    return c;
+                                  });
+                                  return;
+                                }
 
-    await p.onCommit(r.operation.id, t, parsed2.value, current);
+                                await p.onCommit(r.operation.id, t, parsed2.value, current);
 
-    setDraft((prev) => {
-      const c = { ...prev };
-      delete c[key];
-      return c;
-    });
-  }}
-  error={!isValid}
-  helperText={!isValid ? parsed.message : " "}
-  sx={{
-    width: 92,
-    "& .MuiInputBase-input": { textAlign: "center" },
-    ...(isLow ? { "& .MuiOutlinedInput-root": { backgroundColor: "rgba(244, 67, 54, 0.10)" } } : {})
-  }}
-/>
-
+                                setDraft((prev) => {
+                                  const c = { ...prev };
+                                  delete c[key];
+                                  return c;
+                                });
+                              }}
+                              error={!isValid}
+                              helperText={!isValid ? parsed.message : " "}
+                              sx={{
+                                width: 92,
+                                "& .MuiInputBase-input": { textAlign: "center" },
+                                ...(isLow
+                                  ? {
+                                      "& .MuiOutlinedInput-root": {
+                                        backgroundColor: "rgba(244, 67, 54, 0.10)"
+                                      }
+                                    }
+                                  : {})
+                              }}
+                            />
                           </Box>
                         </Tooltip>
                       </TableCell>
@@ -320,6 +516,79 @@ export function PlantOperationsTable(p: {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Dialog
+        open={opForm.open}
+        onClose={() => setOpForm((prev) => ({ ...prev, open: false }))}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ fontWeight: 900 }}>
+          {opForm.mode === "create" ? "Nueva operación" : "Editar operación"}
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 1.5 }}>
+          <Box className="grid grid-cols-1 gap-3">
+            <TextField
+              label="Nombre"
+              value={opForm.name}
+              onChange={(e) => setOpForm((prev) => ({ ...prev, name: e.target.value }))}
+              fullWidth
+              autoFocus
+            />
+
+            <Box className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <TextField
+                label="Base USD"
+                value={opForm.basePriceUsd}
+                onChange={(e) =>
+                  setOpForm((prev) => ({ ...prev, basePriceUsd: e.target.value }))
+                }
+                fullWidth
+                inputMode="decimal"
+              />
+
+              <FormControl fullWidth>
+                <InputLabel id="linkmode-label">Vincular precio</InputLabel>
+                <Select
+                  labelId="linkmode-label"
+                  label="Vincular precio"
+                  value={opForm.linkMode}
+                  onChange={(e) =>
+                    setOpForm((prev) => ({ ...prev, linkMode: e.target.value as LinkMode }))
+                  }
+                >
+                  <MenuItem value="NONE">No vincular</MenuItem>
+                  <MenuItem value="BY_STRUCTURE">Por estructura</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {opForm.error && (
+              <Typography color="error" variant="body2" sx={{ fontWeight: 700 }}>
+                {opForm.error}
+              </Typography>
+            )}
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setOpForm((prev) => ({ ...prev, open: false }))}
+            disabled={savingStructure}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={submitOpForm}
+            disabled={savingStructure}
+            sx={{ fontWeight: 900 }}
+          >
+            {savingStructure ? "Guardando..." : "Guardar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }
