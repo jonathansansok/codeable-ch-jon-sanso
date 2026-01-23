@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import { buildAppTheme } from "./theme";
 import { ColorModeContext, type ColorModeCtx } from "./colorMode.context";
@@ -20,7 +20,7 @@ export function ColorModeProvider(p: { children: React.ReactNode }) {
         });
       },
     }),
-    [mode]
+    [mode],
   );
 
   const theme = useMemo(() => buildAppTheme(mode), [mode]);
@@ -30,10 +30,4 @@ export function ColorModeProvider(p: { children: React.ReactNode }) {
       <ThemeProvider theme={theme}>{p.children}</ThemeProvider>
     </ColorModeContext.Provider>
   );
-}
-
-export function useColorMode() {
-  const v = useContext(ColorModeContext);
-  if (!v) throw new Error("useColorMode must be used within ColorModeProvider");
-  return v;
 }

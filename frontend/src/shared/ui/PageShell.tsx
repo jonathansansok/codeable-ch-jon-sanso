@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useMemo, useState } from "react";
-import { useColorMode } from "../../app/theme/colorMode";
+import { useColorMode } from "../../app/theme/useColorMode";
 import { FiChevronLeft, FiChevronRight, FiMenu } from "react-icons/fi";
 
 type NavItem = {
