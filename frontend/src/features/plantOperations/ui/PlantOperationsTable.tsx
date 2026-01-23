@@ -1,3 +1,4 @@
+//frontend\src\features\plantOperations\ui\PlantOperationsTable.tsx
 import {
   Box,
   Button,
@@ -561,20 +562,14 @@ export function PlantOperationsTable(p: {
                               type="text"
                               inputMode="decimal"
                               onFocus={() => {
-                                if (!touched[key]) {
-                                  setTouched((prev) => ({ ...prev, [key]: true }));
-                                }
+                                if (!touched[key]) setTouched((prev) => ({ ...prev, [key]: true }));
                               }}
                               onChange={(e) => {
-                                if (!touched[key]) {
-                                  setTouched((prev) => ({ ...prev, [key]: true }));
-                                }
+                                if (!touched[key]) setTouched((prev) => ({ ...prev, [key]: true }));
                                 setDraft((prev) => ({ ...prev, [key]: e.target.value }));
                               }}
                               onBlur={async () => {
-                                if (!touched[key]) {
-                                  setTouched((prev) => ({ ...prev, [key]: true }));
-                                }
+                                if (!touched[key]) setTouched((prev) => ({ ...prev, [key]: true }));
 
                                 const raw = draft[key];
                                 if (raw == null) return;
@@ -611,9 +606,19 @@ export function PlantOperationsTable(p: {
                               }}
                               error={!isValid}
                               helperText={!isValid ? parsed.message : " "}
+                              FormHelperTextProps={{
+                                sx: {
+                                  whiteSpace: "pre-line",
+                                  textAlign: "center",
+                                  lineHeight: 1.1,
+                                  mt: 0.5,
+                                  mx: 0
+                                }
+                              }}
                               sx={{
                                 width: 92,
                                 "& .MuiInputBase-input": { textAlign: "center" },
+                                "& .MuiFormHelperText-root": { minHeight: 28 },
                                 ...(isLow
                                   ? {
                                       "& .MuiOutlinedInput-root": {
