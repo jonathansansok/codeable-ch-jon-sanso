@@ -1,3 +1,4 @@
+//frontend\src\features\plantOperations\ui\PlantOperationsTable.tsx
 import {
   Box,
   IconButton,

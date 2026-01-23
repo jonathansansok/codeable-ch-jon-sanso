@@ -1,3 +1,4 @@
+import { MockedProvider } from "@apollo/client/testing/react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -50,9 +51,13 @@ const plantOpRow: PlantOpRow = {
   ],
 };
 
-const refetchMock = vi.fn(async () => ({ data: { plantOperations: [plantOpRow] } }));
+const refetchMock = vi.fn(async () => ({
+  data: { plantOperations: [plantOpRow] },
+}));
 const setMarginMock = vi.fn(async () => ({
-  data: { setMargin: { id: "po1", margins: [{ tier: "KG_300", marginPercent: 4 }] } },
+  data: {
+    setMargin: { id: "po1", margins: [{ tier: "KG_300", marginPercent: 4 }] },
+  },
 }));
 
 vi.mock("../api/plantOperations.hooks", () => {
@@ -62,13 +67,12 @@ vi.mock("../api/plantOperations.hooks", () => {
       error: undefined,
       data: { plants: [plant] },
     }),
-   usePlantOperations: () => ({
-  loading: false,
-  error: undefined,
-  data: { plantOperations: [plantOpRow] },
-  refetch: refetchMock,
-}),
-
+    usePlantOperations: () => ({
+      loading: false,
+      error: undefined,
+      data: { plantOperations: [plantOpRow] },
+      refetch: refetchMock,
+    }),
     useSetMargin: () => [
       setMarginMock,
       { loading: false, error: undefined, data: undefined },
@@ -80,7 +84,11 @@ describe("PlantOperationsPage integration", () => {
   it("edits a cell and commits on blur; shows low-margin tooltip", async () => {
     const user = userEvent.setup();
 
-    render(<PlantOperationsPage />);
+    render(
+      <MockedProvider mocks={[]}>
+        <PlantOperationsPage />
+      </MockedProvider>,
+    );
 
     await screen.findByText("KROWDY");
 
@@ -89,7 +97,7 @@ describe("PlantOperationsPage integration", () => {
     expect(row).toBeTruthy();
     if (!row) return;
 
-    const inputs = within(row).getAllByRole("spinbutton");
+    const inputs = within(row).getAllByRole("textbox");
     expect(inputs.length).toBeGreaterThan(0);
 
     await user.clear(inputs[0]);

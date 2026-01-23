@@ -1,134 +1,210 @@
-codeable-ch-jon-sanso
+# codeable-ch-jon-sanso
+
 Assessment Práctico – Configuración de Cotización (Clientes) v2
-Backend: Node.js 20.x + GraphQL (Apollo Server) + Prisma + MySQL. Frontend: React + Apollo Client.
-URLs
-•	Frontend (DEV): http://localhost:5173
-•	Frontend (PROD - Nginx): http://localhost:5173
-•	GraphQL: http://localhost:4000/graphql
-Notas sobre MySQL:
-•	Local (sin Docker): MySQL en localhost:3306, base de datos quoting.
-•	Docker: MySQL expuesto en localhost:3307 (root/rootpass), base de datos codeable (según docker-compose).
-Requisitos
-•	Node.js 20.x (recomendado por la consigna).
-•	MySQL disponible (XAMPP/Workbench/servicio local) o Docker para el stack completo.
-Environment
-Ejemplo de archivo .env para correr el backend en local:
+
+Backend: Node.js 20.x + GraphQL (Apollo Server) + Prisma + MySQL  
+Frontend: React (Vite) + Apollo Client
+
+---
+
+## 0) URLs
+
+- Frontend (DEV): http://localhost:5173
+- Frontend (PROD - Nginx): http://localhost:5173
+- GraphQL: http://localhost:4000/graphql
+
+---
+
+## 1) MySQL (notas)
+
+### Local (sin Docker)
+- Host: localhost:3306
+- DB: quoting
+- User: root
+- Pass: (vacío / según tu setup)
+
+### Docker (stack completo)
+- Host: localhost:3307
+- DB: codeable
+- User: root
+- Pass: rootpass  
+- Fuente: docker-compose del repo
+
+---
+
+## 2) Requisitos
+
+- Node.js 20.x (recomendado por consigna)
+- MySQL disponible (XAMPP/Workbench/servicio local) **o** Docker (para levantar stack completo)
+- NPM instalado
+
+---
+
+## 3) Environment
+
+### Backend `.env` (local)
+Ejemplo mínimo:
+
+```env
 DATABASE_URL="mysql://root@localhost:3306/quoting"
 PORT=4000
-1) Run LOCAL (sin Docker)
-Backend
+Frontend .env (opcional)
+Para apuntar a GraphQL:
+
+env
+Copiar código
+VITE_GRAPHQL_URL=http://localhost:4000/graphql
+4) Run LOCAL (sin Docker)
+4.1 Backend
+bash
+Copiar código
 cd backend
 npm i
 npx prisma generate
 npx prisma migrate dev
 npm run prisma:seed
 npm run dev
-GraphQL Playground / endpoint:
+Endpoint GraphQL / Playground:
+
 http://localhost:4000/graphql
-Frontend
+
+4.2 Frontend
+bash
+Copiar código
 cd frontend
 npm i
 npm run dev
 Frontend:
+
 http://localhost:5173
-Smoke test GraphQL (PowerShell)
+
+4.3 Smoke test GraphQL (PowerShell)
+powershell
+Copiar código
 $body = @{ query = 'query { __typename }' } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri 'http://localhost:4000/graphql' -ContentType 'application/json' -Body $body
-2) Docker DEV (hot reload)
-Levantar
+5) Docker DEV (hot reload)
+5.1 Levantar limpio
+bash
+Copiar código
 docker compose down -v
 docker compose up --build
-Logs
+5.2 Logs
+bash
+Copiar código
 docker compose logs -f backend
 docker compose logs -f frontend
-URLs
-•	Frontend: http://localhost:5173
-## Frontend
+5.3 URLs
+Frontend: http://localhost:5173
 
-### Tech Stack
-- React (Vite)
-- Apollo Client v4 (GraphQL)
-- Material UI (MUI) v7 + Emotion (styling engine)
-- TailwindCSS (utility classes para layout/spacing)
-- Zod (validación de inputs)
-- Testing: Vitest + React Testing Library + MSW (mock de GraphQL en integración)
+GraphQL: http://localhost:4000/graphql
 
-### Estructura (orientada a recruiter / mantenible)
-- `src/app/` providers y theme (ColorMode + MUI ThemeProvider)
-- `src/shared/` UI shell reutilizable (`PageShell`)
-- `src/features/plantOperations/`
-  - `api/` queries/mutations + hooks
-  - `ui/` página + tabla + selector
-  - `utils/` helpers (tiers, labels)
-  - `validation/` parse/validate (Zod)
+6) Docker PROD (build + runner)
+6.1 Levantar limpio
+bash
+Copiar código
+docker compose -f docker-compose.prod.yml down -v
+docker compose -f docker-compose.prod.yml up -d --build
+6.2 Ver estado
+bash
+Copiar código
+docker compose -f docker-compose.prod.yml ps
+6.3 Logs
+bash
+Copiar código
+docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f frontend
+6.4 URLs
+Frontend (nginx): http://localhost:5173
 
-### UI / UX (según consigna)
-- Pantalla de matriz por planta (PlantSelector + tabla)
-- Edición de celda por tier (commit onBlur)
-- Alerta de margen bajo (≤ 5%) en la celda (Tooltip + highlight)
-- Filtro frontend: “Ver solo empresas con datos sobre-escritos” (sin tocar backend)
+GraphQL: http://localhost:4000/graphql
 
-### Ejecutar Frontend (Local)
+7) Frontend
+7.1 Tech Stack
+React (Vite)
 
+Apollo Client v4 (GraphQL)
+
+Material UI (MUI) v7 + Emotion
+
+TailwindCSS (utility classes para layout/spacing)
+
+Zod (validación de inputs)
+
+Testing: Vitest + React Testing Library + MSW (mock de GraphQL en integración)
+
+7.2 Estructura (recruiter-friendly / mantenible)
+src/app/
+Providers y theme (ColorMode + MUI ThemeProvider)
+
+src/shared/
+UI shell reutilizable (PageShell)
+
+src/features/plantOperations/
+
+api/ queries/mutations + hooks
+
+ui/ página + tabla + selector
+
+utils/ helpers (tiers, labels)
+
+validation/ parse/validate (Zod)
+
+7.3 UI / UX (según consigna)
+Pantalla de matriz por planta (PlantSelector + tabla)
+
+Edición de celda por tier (commit onBlur)
+
+Alerta de margen bajo (≤ 5%) en la celda (Tooltip + highlight)
+
+Filtro frontend: “Ver solo empresas con datos sobre-escritos” (sin tocar backend)
+
+7.4 Ejecutar Frontend (Local)
+bash
+Copiar código
 cd frontend
 npm i
 npm run dev
-Frontend:
-
 http://localhost:5173
 
-Variables de Entorno (Frontend)
-Opcional para apuntar a GraphQL:
-
-VITE_GRAPHQL_URL=http://localhost:4000/graphql
-
-Tests (Frontend)
+7.5 Tests (Frontend)
 Los tests del frontend son integration tests de UI con mock de GraphQL vía MSW
 (no requiere backend corriendo).
 
-Correr en modo watch:
+Modo watch:
 
+bash
+Copiar código
 cd frontend
 npm run test
-Correr una vez (CI):
+Una vez (CI):
 
+bash
+Copiar código
 cd frontend
 npm run test:run
-Notas:
-Tests incluidos (4 archivos)
+Tests incluidos (4 archivos):
 
 validation/margin.test.ts
-Unit test. Prueba parseMargin: cómo se valida/parsea lo que el usuario escribe (vacío, inválido, negativo, decimal válido).
+Unit test: parseMargin (vacío, inválido, negativo, decimal válido)
 
 utils/tiers.test.ts
-Unit test. Prueba tierLabel: transforma KG_300, T_1, etc. en labels “300 kg”, “1T”, “10T”.
+Unit test: tierLabel (KG_300, T_1, etc. → “300 kg”, “1T”, “10T”)
 
 utils/margins.test.ts
-Unit test. Prueba marginsToRecord: completa tiers faltantes con 0 para tener un formato consistente.
+Unit test: marginsToRecord (completa tiers faltantes con 0)
 
 ui/PlantOperationsPage.test.tsx
-Test de integración (RTL). Verifica el flujo básico de la pantalla: render de “KROWDY”, edición de margen, alerta si <= 5%, y commit al perder foco (blur/refetch).
-MSW intercepta requests GraphQL en tests y responde con fixtures tipados.
-•	GraphQL: http://localhost:4000/graphql
-Smoke test GraphQL (PowerShell)
-$body = @{ query = 'query { __typename }' } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri 'http://localhost:4000/graphql' -ContentType 'application/json' -Body $body
-3) Docker PROD (build + runner)
-Levantar limpio
-docker compose -f docker-compose.prod.yml down -v
-docker compose -f docker-compose.prod.yml up -d --build
-Ver estado
-docker compose -f docker-compose.prod.yml ps
-Logs
-docker compose -f docker-compose.prod.yml logs -f backend
-docker compose -f docker-compose.prod.yml logs -f frontend
-URLs
-•	Frontend (nginx): http://localhost:5173
-•	GraphQL: http://localhost:4000/graphql
-GraphQL Demo (Playground)
+Integration (RTL): render “KROWDY”, edición de margen, alerta <= 5%, commit al blur (refetch)
+
+8) GraphQL Demo (Playground)
 Abrir:
+
 http://localhost:4000/graphql
-1) Listar plantas
+
+8.1 Listar plantas
+graphql
+Copiar código
 query Plants {
   plants {
     id
@@ -136,7 +212,9 @@ query Plants {
     code
   }
 }
-2) Obtener matriz completa por planta (tabla)
+8.2 Obtener matriz completa por planta (tabla)
+graphql
+Copiar código
 query PlantOperationsMatrix($plantId: ID!) {
   plantOperationsMatrix(plantId: $plantId) {
     id
@@ -159,8 +237,13 @@ query PlantOperationsMatrix($plantId: ID!) {
   }
 }
 Variables:
+
+json
+Copiar código
 { "plantId": "PLANT_ID" }
-3) Editar una celda (margen por tier)
+8.3 Editar una celda (margen por tier)
+graphql
+Copiar código
 mutation SetMargin($plantId: ID!, $operationId: ID!) {
   setMargin(
     plantId: $plantId
@@ -176,11 +259,16 @@ mutation SetMargin($plantId: ID!, $operationId: ID!) {
   }
 }
 Variables:
+
+json
+Copiar código
 {
   "plantId": "PLANT_ID",
   "operationId": "OPERATION_ID"
 }
-4) Editar una fila completa (bulk)
+8.4 Editar una fila completa (bulk)
+graphql
+Copiar código
 mutation SetMarginsBulk($plantOperationId: ID!) {
   setMarginsBulk(
     plantOperationId: $plantOperationId
@@ -204,37 +292,37 @@ mutation SetMarginsBulk($plantOperationId: ID!) {
   }
 }
 Variables:
+
+json
+Copiar código
 { "plantOperationId": "PLANT_OPERATION_ID" }
+9) Tests (Backend)
+Los tests del backend son integration tests (GraphQL contract + resolvers + Prisma + MySQL).
+Para no afectar la base demo (quoting), se recomienda usar DB separada: quoting_test.
 
+9.1 Setup DB de tests (una sola vez)
+Notas (Windows / XAMPP / Prisma):
 
-## Tests
+Si usás MySQL local via XAMPP, asegurate de que el servicio esté iniciado antes de migraciones/seed/tests.
 
-Los tests son **integration tests** (GraphQL contract + resolvers + Prisma + MySQL).  
-Para no afectar la base de datos de demo (`quoting`), se recomienda usar una DB separada para tests: `quoting_test`.
+Crear DB quoting_test en MySQL:
 
-### Setup DB de tests (una sola vez)
-
-0. Notas (Windows / XAMPP / Prisma)
-
-En Windows, si usás MySQL local via XAMPP, asegurate de que el servicio esté iniciado antes de correr migraciones/seed/tests.
-
-1) Crear DB `quoting_test` en MySQL:
-```sql
-
+sql
+Copiar código
 CREATE DATABASE quoting_test;
+Aplicar migraciones sobre quoting_test (PowerShell):
 
-
-2. Aplicar migraciones sobre quoting_test (PowerShell):
-
+powershell
+Copiar código
 cd backend
 $env:DATABASE_URL="mysql://root@localhost:3306/quoting_test"; npx prisma migrate dev
+Correr tests usando quoting_test (PowerShell):
 
-3. Correr tests usando quoting_test (PowerShell)
+powershell
+Copiar código
 cd backend
 $env:DATABASE_URL="mysql://root@localhost:3306/quoting_test"; npm run test
-
-NOTA:
-
+9.2 Cobertura funcional (notas)
 plantOperationsMatrix devuelve operaciones aunque no exista PlantOperation
 
 isLowMargin true cuando marginPercent <= 5
@@ -247,6 +335,96 @@ upsertOperation nombre unique devuelve error legible
 
 setMarginsBulk actualiza múltiples tiers
 
-teardown (solo cleanup: prisma.$disconnect())
+Teardown: solo cleanup prisma.$disconnect()
 
-* 6 tests funcionales/integration + 1 teardown.
+Total: 6 tests funcionales/integration + 1 teardown
+
+10) Git
+10.1 Convención de branching
+Branch principal: main
+
+Feature branches: feature/... (ej. feature/margins, feature/color)
+
+10.2 Mantener mi branch actualizado con main (simulación operativa)
+Cambiar a la rama:
+
+bash
+Copiar código
+git checkout feature/color
+Traer cambios del remoto:
+
+bash
+Copiar código
+git fetch origin
+Rebase con main:
+
+bash
+Copiar código
+git rebase origin/main
+Si hubo conflictos:
+
+resolver archivos
+
+git add .
+
+git rebase --continue
+
+Subir rama:
+
+Si es rama personal (rebase):
+
+bash
+Copiar código
+git push -f origin feature/color
+Si es rama compartida, evitar rebase; usar merge:
+
+bash
+Copiar código
+git merge origin/main
+git push origin feature/color
+Abrir PR hacia main con la rama sincronizada.
+
+10.3 Manejo de conflicto si otro dev edita schema.graphql
+Traer cambios:
+
+bash
+Copiar código
+git fetch origin
+Actualizar rama:
+
+bash
+Copiar código
+git rebase origin/main
+(o merge si la rama es compartida)
+
+Resolver conflicto en schema.graphql:
+
+revisar marcadores <<<<<<< ======= >>>>>>>
+
+integrar ambos cambios de forma coherente (sumar tipos/campos cuando corresponde)
+
+dejar un único schema consistente
+
+Validar:
+
+bash
+Copiar código
+npm run build
+npm test
+Marcar resuelto y continuar:
+
+bash
+Copiar código
+git add schema.graphql
+git rebase --continue
+(o commit si fue merge)
+
+Subir:
+
+git push -f si fue rebase
+
+git push normal si fue merge
+
+makefile
+Copiar código
+::contentReference[oaicite:0]{index=0}

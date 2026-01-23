@@ -1,3 +1,4 @@
+//frontend\src\features\plantOperations\ui\PlantSelector.tsx
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import type { Plant } from "../../../types/domain";
 

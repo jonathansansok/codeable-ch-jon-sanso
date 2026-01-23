@@ -1,3 +1,4 @@
+//frontend\src\features\plantOperations\ui\components\OperationCellHeader.tsx
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import type { PlantOpRow } from "../../../../types/domain";
 
