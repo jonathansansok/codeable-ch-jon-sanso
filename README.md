@@ -52,12 +52,12 @@ Frontend .env (opcional)
 Para apuntar a GraphQL:
 
 env
-Copiar código
+
 VITE_GRAPHQL_URL=http://localhost:4000/graphql
 4) Run LOCAL (sin Docker)
 4.1 Backend
-bash
-Copiar código
+ 
+
 cd backend
 npm i
 npx prisma generate
@@ -69,8 +69,8 @@ Endpoint GraphQL / Playground:
 http://localhost:4000/graphql
 
 4.2 Frontend
-bash
-Copiar código
+ 
+
 cd frontend
 npm i
 npm run dev
@@ -80,18 +80,18 @@ http://localhost:5173
 
 4.3 Smoke test GraphQL (PowerShell)
 powershell
-Copiar código
+
 $body = @{ query = 'query { __typename }' } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri 'http://localhost:4000/graphql' -ContentType 'application/json' -Body $body
 5) Docker DEV (hot reload)
 5.1 Levantar limpio
-bash
-Copiar código
+ 
+
 docker compose down -v
 docker compose up --build
 5.2 Logs
-bash
-Copiar código
+ 
+
 docker compose logs -f backend
 docker compose logs -f frontend
 5.3 URLs
@@ -101,17 +101,17 @@ GraphQL: http://localhost:4000/graphql
 
 6) Docker PROD (build + runner)
 6.1 Levantar limpio
-bash
-Copiar código
+ 
+
 docker compose -f docker-compose.prod.yml down -v
 docker compose -f docker-compose.prod.yml up -d --build
 6.2 Ver estado
-bash
-Copiar código
+ 
+
 docker compose -f docker-compose.prod.yml ps
 6.3 Logs
-bash
-Copiar código
+ 
+
 docker compose -f docker-compose.prod.yml logs -f backend
 docker compose -f docker-compose.prod.yml logs -f frontend
 6.4 URLs
@@ -160,8 +160,8 @@ Alerta de margen bajo (≤ 5%) en la celda (Tooltip + highlight)
 Filtro frontend: “Ver solo empresas con datos sobre-escritos” (sin tocar backend)
 
 7.4 Ejecutar Frontend (Local)
-bash
-Copiar código
+ 
+
 cd frontend
 npm i
 npm run dev
@@ -173,14 +173,14 @@ Los tests del frontend son integration tests de UI con mock de GraphQL vía MSW
 
 Modo watch:
 
-bash
-Copiar código
+ 
+
 cd frontend
 npm run test
 Una vez (CI):
 
-bash
-Copiar código
+ 
+
 cd frontend
 npm run test:run
 Tests incluidos (4 archivos):
@@ -204,7 +204,7 @@ http://localhost:4000/graphql
 
 8.1 Listar plantas
 graphql
-Copiar código
+
 query Plants {
   plants {
     id
@@ -214,7 +214,7 @@ query Plants {
 }
 8.2 Obtener matriz completa por planta (tabla)
 graphql
-Copiar código
+
 query PlantOperationsMatrix($plantId: ID!) {
   plantOperationsMatrix(plantId: $plantId) {
     id
@@ -239,11 +239,11 @@ query PlantOperationsMatrix($plantId: ID!) {
 Variables:
 
 json
-Copiar código
+
 { "plantId": "PLANT_ID" }
 8.3 Editar una celda (margen por tier)
 graphql
-Copiar código
+
 mutation SetMargin($plantId: ID!, $operationId: ID!) {
   setMargin(
     plantId: $plantId
@@ -261,14 +261,14 @@ mutation SetMargin($plantId: ID!, $operationId: ID!) {
 Variables:
 
 json
-Copiar código
+
 {
   "plantId": "PLANT_ID",
   "operationId": "OPERATION_ID"
 }
 8.4 Editar una fila completa (bulk)
 graphql
-Copiar código
+
 mutation SetMarginsBulk($plantOperationId: ID!) {
   setMarginsBulk(
     plantOperationId: $plantOperationId
@@ -294,7 +294,7 @@ mutation SetMarginsBulk($plantOperationId: ID!) {
 Variables:
 
 json
-Copiar código
+
 { "plantOperationId": "PLANT_OPERATION_ID" }
 9) Tests (Backend)
 Los tests del backend son integration tests (GraphQL contract + resolvers + Prisma + MySQL).
@@ -308,18 +308,18 @@ Si usás MySQL local via XAMPP, asegurate de que el servicio esté iniciado ante
 Crear DB quoting_test en MySQL:
 
 sql
-Copiar código
+
 CREATE DATABASE quoting_test;
 Aplicar migraciones sobre quoting_test (PowerShell):
 
 powershell
-Copiar código
+
 cd backend
 $env:DATABASE_URL="mysql://root@localhost:3306/quoting_test"; npx prisma migrate dev
 Correr tests usando quoting_test (PowerShell):
 
 powershell
-Copiar código
+
 cd backend
 $env:DATABASE_URL="mysql://root@localhost:3306/quoting_test"; npm run test
 9.2 Cobertura funcional (notas)
@@ -348,18 +348,18 @@ Feature branches: feature/... (ej. feature/margins, feature/color)
 10.2 Mantener mi branch actualizado con main (simulación operativa)
 Cambiar a la rama:
 
-bash
-Copiar código
+ 
+
 git checkout feature/color
 Traer cambios del remoto:
 
-bash
-Copiar código
+ 
+
 git fetch origin
 Rebase con main:
 
-bash
-Copiar código
+ 
+
 git rebase origin/main
 Si hubo conflictos:
 
@@ -373,13 +373,13 @@ Subir rama:
 
 Si es rama personal (rebase):
 
-bash
-Copiar código
+ 
+
 git push -f origin feature/color
 Si es rama compartida, evitar rebase; usar merge:
 
-bash
-Copiar código
+ 
+
 git merge origin/main
 git push origin feature/color
 Abrir PR hacia main con la rama sincronizada.
@@ -387,13 +387,13 @@ Abrir PR hacia main con la rama sincronizada.
 10.3 Manejo de conflicto si otro dev edita schema.graphql
 Traer cambios:
 
-bash
-Copiar código
+ 
+
 git fetch origin
 Actualizar rama:
 
-bash
-Copiar código
+ 
+
 git rebase origin/main
 (o merge si la rama es compartida)
 
@@ -407,14 +407,14 @@ dejar un único schema consistente
 
 Validar:
 
-bash
-Copiar código
+ 
+
 npm run build
 npm test
 Marcar resuelto y continuar:
 
-bash
-Copiar código
+ 
+
 git add schema.graphql
 git rebase --continue
 (o commit si fue merge)
@@ -426,5 +426,5 @@ git push -f si fue rebase
 git push normal si fue merge
 
 makefile
-Copiar código
+
 ::contentReference[oaicite:0]{index=0}
