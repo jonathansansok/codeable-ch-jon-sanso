@@ -1,93 +1,186 @@
-# codeable-ch-jon-sanso
-
-## URLs
-- Front (DEV Docker): http://localhost:5173
-- Front (PROD Docker - Nginx): http://localhost:5173
-- GraphQL: http://localhost:4000/graphql
-- MySQL (host): localhost:3307 (user: root, pass: rootpass, db: codeable)
-
----
-
-## 1) Run LOCAL (sin Docker)
-
-### Backend
-   
+codeable-ch-jon-sanso
+Assessment Práctico – Configuración de Cotización (Clientes) v2
+Backend: Node.js 20.x + GraphQL (Apollo Server) + Prisma + MySQL. Frontend: React + Apollo Client.
+URLs
+•	Frontend (DEV): http://localhost:5173
+•	Frontend (PROD - Nginx): http://localhost:5173
+•	GraphQL: http://localhost:4000/graphql
+Notas sobre MySQL:
+•	Local (sin Docker): MySQL en localhost:3306, base de datos quoting.
+•	Docker: MySQL expuesto en localhost:3307 (root/rootpass), base de datos codeable (según docker-compose).
+Requisitos
+•	Node.js 20.x (recomendado por la consigna).
+•	MySQL disponible (XAMPP/Workbench/servicio local) o Docker para el stack completo.
+Environment
+Ejemplo de archivo .env para correr el backend en local:
+DATABASE_URL="mysql://root@localhost:3306/quoting"
+PORT=4000
+1) Run LOCAL (sin Docker)
+Backend
 cd backend
 npm i
 npx prisma generate
 npx prisma migrate dev
 npm run prisma:seed
 npm run dev
-Backend GraphQL:
-
+GraphQL Playground / endpoint:
 http://localhost:4000/graphql
-
 Frontend
-    
-
 cd frontend
 npm i
 npm run dev
 Frontend:
-
 http://localhost:5173
-
 Smoke test GraphQL (PowerShell)
-powershell
-
 $body = @{ query = 'query { __typename }' } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri 'http://localhost:4000/graphql' -ContentType 'application/json' -Body $body
 2) Docker DEV (hot reload)
 Levantar
-    
-
 docker compose down -v
 docker compose up --build
 Logs
-    
-
 docker compose logs -f backend
 docker compose logs -f frontend
-URLs:
-
-Front: http://localhost:5173
-
-GraphQL: http://localhost:4000/graphql
-
+URLs
+•	Frontend: http://localhost:5173
+•	GraphQL: http://localhost:4000/graphql
 Smoke test GraphQL (PowerShell)
-powershell
-
 $body = @{ query = 'query { __typename }' } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri 'http://localhost:4000/graphql' -ContentType 'application/json' -Body $body
 3) Docker PROD (build + runner)
 Levantar limpio
-    
-
 docker compose -f docker-compose.prod.yml down -v
 docker compose -f docker-compose.prod.yml up -d --build
 Ver estado
-    
-
 docker compose -f docker-compose.prod.yml ps
 Logs
-    
-
 docker compose -f docker-compose.prod.yml logs -f backend
 docker compose -f docker-compose.prod.yml logs -f frontend
-URLs:
+URLs
+•	Frontend (nginx): http://localhost:5173
+•	GraphQL: http://localhost:4000/graphql
+GraphQL Demo (Playground)
+Abrir:
+http://localhost:4000/graphql
+1) Listar plantas
+query Plants {
+  plants {
+    id
+    name
+    code
+  }
+}
+2) Obtener matriz completa por planta (tabla)
+query PlantOperationsMatrix($plantId: ID!) {
+  plantOperationsMatrix(plantId: $plantId) {
+    id
+    plant {
+      id
+      name
+      code
+    }
+    operation {
+      id
+      name
+      basePriceUsd
+      linkMode
+    }
+    margins {
+      tier
+      marginPercent
+      isLowMargin
+    }
+  }
+}
+Variables:
+{ "plantId": "PLANT_ID" }
+3) Editar una celda (margen por tier)
+mutation SetMargin($plantId: ID!, $operationId: ID!) {
+  setMargin(
+    plantId: $plantId
+    operationId: $operationId
+    input: { tier: T_3, marginPercent: 4.5 }
+  ) {
+    id
+    margins {
+      tier
+      marginPercent
+      isLowMargin
+    }
+  }
+}
+Variables:
+{
+  "plantId": "PLANT_ID",
+  "operationId": "OPERATION_ID"
+}
+4) Editar una fila completa (bulk)
+mutation SetMarginsBulk($plantOperationId: ID!) {
+  setMarginsBulk(
+    plantOperationId: $plantOperationId
+    inputs: [
+      { tier: KG_300, marginPercent: 15 }
+      { tier: KG_500, marginPercent: 15 }
+      { tier: T_1, marginPercent: 15 }
+      { tier: T_3, marginPercent: 4.5 }
+      { tier: T_5, marginPercent: 14 }
+      { tier: T_10, marginPercent: 20 }
+      { tier: T_20, marginPercent: 15 }
+      { tier: T_30, marginPercent: 15 }
+    ]
+  ) {
+    id
+    margins {
+      tier
+      marginPercent
+      isLowMargin
+    }
+  }
+}
+Variables:
+{ "plantOperationId": "PLANT_OPERATION_ID" }
 
-Front (nginx): http://localhost:5173
 
-GraphQL: http://localhost:4000/graphql
+## Tests
 
-Smoke test GraphQL (PowerShell)
-powershell
+Los tests son **integration tests** (GraphQL contract + resolvers + Prisma + MySQL).  
+Para no afectar la base de datos de demo (`quoting`), se recomienda usar una DB separada para tests: `quoting_test`.
 
-$body = @{ query = 'query { __typename }' } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri 'http://localhost:4000/graphql' -ContentType 'application/json' -Body $body
-Nota: GraphQL en navegador
-Al abrir http://localhost:4000/graphql en el navegador puede mostrarse:
+### Setup DB de tests (una sola vez)
 
-Send a POST request to query this endpoint
+0. Notas (Windows / XAMPP / Prisma)
 
-Esto es esperado: el endpoint GraphQL requiere POST con JSON (ver smoke tests).
+En Windows, si usás MySQL local via XAMPP, asegurate de que el servicio esté iniciado antes de correr migraciones/seed/tests.
+
+1) Crear DB `quoting_test` en MySQL:
+```sql
+
+CREATE DATABASE quoting_test;
+
+
+2. Aplicar migraciones sobre quoting_test (PowerShell):
+
+cd backend
+$env:DATABASE_URL="mysql://root@localhost:3306/quoting_test"; npx prisma migrate dev
+
+3. Correr tests usando quoting_test (PowerShell)
+cd backend
+$env:DATABASE_URL="mysql://root@localhost:3306/quoting_test"; npm run test
+
+NOTA:
+
+plantOperationsMatrix devuelve operaciones aunque no exista PlantOperation
+
+isLowMargin true cuando marginPercent <= 5
+
+upsertOperation rechaza basePriceUsd negativo
+
+upsertPlant rechaza name vacío (trim)
+
+upsertOperation nombre unique devuelve error legible
+
+setMarginsBulk actualiza múltiples tiers
+
+teardown (solo cleanup: prisma.$disconnect())
+
+* 6 tests funcionales/integration + 1 teardown.

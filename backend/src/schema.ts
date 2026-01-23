@@ -33,6 +33,7 @@ export const typeDefs = gql`
   type MarginByTier {
     tier: VolumeTier!
     marginPercent: Float!
+    isLowMargin: Boolean!
   }
 
   type PlantOperationRow {
@@ -64,7 +65,9 @@ export const typeDefs = gql`
     plants: [Plant!]!
     operations: [Operation!]!
     plantOperations(plantId: ID!): [PlantOperationRow!]!
+    plantOperationsMatrix(plantId: ID!): [PlantOperationRow!]!
     volumeTiers: [VolumeTier!]!
+    linkModes: [LinkMode!]!
   }
 
   type Mutation {

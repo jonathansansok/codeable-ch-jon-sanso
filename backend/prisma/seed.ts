@@ -1,3 +1,4 @@
+//backend\prisma\seed.ts
 import { PrismaClient, VolumeTier, LinkMode, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
